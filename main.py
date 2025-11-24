@@ -28,11 +28,13 @@ app = FastAPI()
 
 UUIDPK = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), primary_key=True)]
 CreatedAt = Annotated[
-    datetime.datetime, mapped_column(server_default=text('TIMEZONE("utc", now())'), nullable=False)
+    datetime.datetime, mapped_column(server_default=text("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"), nullable=False)
 ]
 UpdatedAt = Annotated[
     datetime.datetime, mapped_column(
-        server_default=text('TIMEZONE("utc", now())'), onupdate=datetime.datetime.now(datetime.UTC), nullable=False
+        server_default=text("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"),
+        onupdate=datetime.datetime.now(datetime.UTC),
+        nullable=False
     )
 ]
 
