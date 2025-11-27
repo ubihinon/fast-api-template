@@ -5,7 +5,7 @@ from typing import Annotated
 from sqlalchemy import func, Index, String, text, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, validates
 
-from src.settings import sync_engine
+from db.session import sync_engine
 
 
 class Base(DeclarativeBase):

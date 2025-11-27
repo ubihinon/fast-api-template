@@ -7,31 +7,31 @@ from models import User
 from schemas.user import UserSchema
 
 
-class UserDAL:
+class UserRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
     async def create(self, email, name) -> UserSchema:
         user = User(email=email, name=name)
         self.session.add(user)
-        res = await self.session.commit()
+        await self.session.flush()
         return UserSchema.model_validate(user)
 
-    async def get_by_id(self, user_id: int) -> dict:
+    async def get_by_id(self, user_id: int) -> UserSchema:
         user = await self.session.get(User, user_id)
-        return UserSchema.model_validate(user).model_dump()
+        return UserSchema.model_validate(user) if user else {}
 
-    async def get_by_email(self, email) -> dict:
+    async def get_by_email(self, email) -> UserSchema:
         query = (
             select(User).where(User.email == email)
         )
         result = await self.session.execute(query)
-        res = result.all()
-        return UserSchema.model_validate(res).model_dump()
+        user = result.all()
+        return UserSchema.model_validate(user) if user else {}
 
     async def all(self) -> List[UserSchema]:
         query = select(User)
         result = await self.session.execute(query)
         users = result.all()
 
-        return [UserSchema.model_validate(user) for user in users]
+        return [UserSchema.model_validate(user) for user in users] if users else []
