@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from dal.user import UserDAL
+from settings import engine
+
+
 app = FastAPI()
 
 
@@ -18,9 +22,11 @@ async def say_hello(name: str):
 async def create_user(email: str, name: str):
     return await UserDAL(session=AsyncSession(engine)).create(email, name)
 
+
 @app.post('/user/{user_id}')
 async def get_user_by_id(user_id: int):
     return await UserDAL(session=AsyncSession(engine)).get_by_id(user_id)
+
 
 @app.post('/user/1/{email}')
 async def get_user_by_email(email: str):
