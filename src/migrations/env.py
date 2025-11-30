@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from models import Base
+from models.base import Base
 # from src.models.user import User
 # from models.user import Base
 
