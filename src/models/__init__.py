@@ -1,1 +1,2 @@
-from .user import Base, User
+from .user import User
+from .access_token import AccessToken

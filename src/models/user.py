@@ -2,20 +2,14 @@ import datetime
 import uuid
 from typing import Annotated
 
-from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
+from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 from sqlalchemy import text, UUID
-from sqlalchemy.orm import DeclarativeBase, mapped_column
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import mapped_column
 
-from db.session import sync_engine
+from api.types.user_id import UserIdType
+from models.base import Base
 from models.mixins import CreatedUpdatedMixin, IdIntPkMixin
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-# Base.metadata.drop_all(sync_engine)
-Base.metadata.create_all(sync_engine)
 
 
 UUIDPK = Annotated[UUID, mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)]
@@ -51,5 +45,7 @@ UpdatedAt = Annotated[
 #         return value.strip().lower() if value else value
 
 
-class User(IdIntPkMixin, CreatedUpdatedMixin, SQLAlchemyBaseUserTable[int], Base):
-    pass
+class User(IdIntPkMixin, CreatedUpdatedMixin, SQLAlchemyBaseUserTable[UserIdType], Base):
+    @classmethod
+    def get_db(cls, session: AsyncSession):
+        return SQLAlchemyUserDatabase(session, cls)
