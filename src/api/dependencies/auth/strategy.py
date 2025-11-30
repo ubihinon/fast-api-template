@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 from fastapi_users.authentication.strategy.db import AccessTokenDatabase, DatabaseStrategy
 
-from api.dependencies.access_tokens import get_access_token_db
+from api.dependencies.auth.access_tokens import get_access_token_db
 from models import AccessToken
 from settings import ACCESS_TOKEN_LIFETIME_SECONDS
 

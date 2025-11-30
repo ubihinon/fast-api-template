@@ -1,10 +1,8 @@
-from typing import TYPE_CHECKING
-
 from fastapi_users_db_sqlalchemy.access_token import SQLAlchemyAccessTokenDatabase, SQLAlchemyBaseAccessTokenTable
 from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.types.user_id import UserIdType
+from types import UserIdType
 from models.base import Base
 
 from sqlalchemy.ext.asyncio import AsyncSession
