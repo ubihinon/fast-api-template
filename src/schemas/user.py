@@ -2,7 +2,7 @@ import datetime
 
 from fastapi_users import schemas
 
-from api.types.user_id import UserIdType
+from types import UserIdType
 
 
 class UserRead(schemas.BaseUser[UserIdType]):

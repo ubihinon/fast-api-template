@@ -7,7 +7,7 @@ from sqlalchemy import text, UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import mapped_column
 
-from api.types.user_id import UserIdType
+from types import UserIdType
 from models.base import Base
 from models.mixins import CreatedUpdatedMixin, IdIntPkMixin
 
