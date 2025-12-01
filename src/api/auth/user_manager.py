@@ -3,7 +3,7 @@ import logging
 from fastapi import Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
 
-from types.user_id import UserIdType
+from app_types.user_id import UserIdType
 from models import User
 from settings import RESET_PASSWORD_TOKEN_SECRET, VERIFICATION_TOKEN_SECRET
 
