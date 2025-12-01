@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import text
+from sqlalchemy import DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -10,10 +10,8 @@ class IdIntPkMixin:
 
 class CreatedUpdatedMixin:
     created_at: Mapped[datetime.datetime] = mapped_column(
-        server_default=text("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"), nullable=False
+        DateTime(timezone=True), server_default=func.now(), nullable=False,
     )
     updated_at: Mapped[datetime.datetime] = mapped_column(
-        server_default=text("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')"),
-        onupdate=datetime.datetime.now(datetime.UTC),
-        nullable=False
+        DateTime(timezone=True), server_default=func.now(), server_onupdate=func.now(), nullable=False,
     )

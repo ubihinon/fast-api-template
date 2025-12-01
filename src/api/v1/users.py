@@ -1,3 +1,15 @@
+from fastapi import APIRouter
+
+from api.dependencies.auth.fastapi_users import fastapi_users
+from schemas.user import UserRead, UserUpdate
+
+router = APIRouter(prefix='/users', tags=['Users'])
+
+# /me and /{id}
+router.include_router(
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+)
+
 # from fastapi import APIRouter, Depends, HTTPException
 # from sqlalchemy.ext.asyncio import AsyncSession
 #
