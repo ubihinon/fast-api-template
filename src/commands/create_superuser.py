@@ -7,7 +7,7 @@ from fastapi_users.exceptions import UserAlreadyExists
 from api.auth.user_manager import UserManager
 from api.dependencies.auth.user_manager import get_user_manager
 from api.dependencies.auth.users import get_user_db
-from db.session import async_session, get_session
+from db.session import async_session
 from models import User
 from schemas.user import UserCreate
 
@@ -22,13 +22,13 @@ async def create_user(user_manager: UserManager, user_create: UserCreate) -> Use
     try:
         user = await user_manager.create(user_create=user_create, safe=False)
     except UserAlreadyExists:
-        logger.error(f'User {user_create.email} already exists')
+        logger.error(f"User {user_create.email} already exists")
         raise
     return user
 
 
-default_email = 'admin@admin.com'
-default_password = '123456'
+default_email = "admin@admin.com"
+default_password = "123456"
 default_is_active = True
 default_is_superuser = True
 default_is_verified = True
@@ -54,5 +54,5 @@ async def create_superuser(
                 return await create_user(user_manager, user_create)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(create_superuser())
