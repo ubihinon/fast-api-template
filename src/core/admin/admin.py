@@ -4,10 +4,12 @@ from models import User, AccessToken
 from models.access_token import LoginToken
 
 
-def init_admin(app):
-    admin = Admin(engine, title='Example: SQLAlchemy')
+def setup_admin(app):
+    admin = Admin(engine, title='FastAPI Template Admin')
+    admin.mount_to(app)
 
     admin.add_view(ModelView(User))
     admin.add_view(ModelView(AccessToken))
     admin.add_view(ModelView(LoginToken))
-    admin.mount_to(app)
+
+    return admin

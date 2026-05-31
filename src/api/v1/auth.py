@@ -2,39 +2,23 @@ import secrets
 from datetime import datetime, timedelta
 
 import jwt
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
-
-from api.dependencies.auth.backend import auth_backend
-from api.dependencies.auth.fastapi_users import current_active_user, fastapi_users
-from models import AccessToken, User
-from models.access_token import LoginToken
-from schemas.user import LoginResponse, UserCreate, UserCreateMagicLink, UserRead
-from fastapi import Depends, Query
 from starlette.responses import HTMLResponse
 
 from api.auth.user_manager import UserManager
+from api.dependencies.auth.fastapi_users import current_active_user
 from api.dependencies.auth.user_manager import get_user_manager
-
-
-
+from models import AccessToken, User
+from models.access_token import LoginToken
+from schemas.user import LoginResponse, UserCreate, UserCreateMagicLink
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-# /login and /logout
-# router.include_router(
-#     fastapi_users.get_auth_router(auth_backend),
-# )
 
-
-# /register
-# router.include_router(
-#     fastapi_users.get_register_router(UserRead, UserCreateMagicLink),
-# )
-
-
-# /request-verify-token and /verify
-# router.include_router(fastapi_users.get_verify_router(UserRead))
+# ==========================================================
+# TODO MOVE LOGIC TO SERVICES
+# ==========================================================
 
 
 @router.post("/magic/login", response_model=LoginResponse)
@@ -47,13 +31,13 @@ async def login_with_magic_link(
     Переопределенный эндпоинт входа.
     Возвращает JSON с сообщением.
 
-    Использование:
-    POST /api/v1/auth/jwt/login
+    Example:
+    POST /magic/login
     {
         "email": "user@example.com"
     }
 
-    Ответ:
+    Response:
     {
         "message": "Ссылка для входа отправлена на ваш email"
     }
@@ -79,7 +63,6 @@ async def login_with_magic_link(
                     message="Если этот email зарегистрирован, вы получите ссылку для входа"
                 )
 
-        # Проверяем, активен ли пользователь
         if not user.is_active:
             return LoginResponse(
                 message="Если этот email зарегистрирован, вы получите ссылку для входа"
@@ -87,12 +70,6 @@ async def login_with_magic_link(
 
         # Генерируем токен входа (действителен 15 минут)
         login_token = await _generate_login_token(user.id, user.email, user_manager.user_db)
-        # access_token = await _generate_access_token(
-        #     user.id,
-        #     user.email,
-        #     user_manager.user_db  # ← Передаем user_db
-        # )
-        # Отправляем email с ссылкой
         try:
             # await send_login_link(user.email, login_token)
             print(f"✓ Email входа отправлен на {user.email}")

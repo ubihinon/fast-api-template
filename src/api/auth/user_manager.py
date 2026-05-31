@@ -5,7 +5,7 @@ from fastapi_users import BaseUserManager, IntegerIDMixin
 
 from app_types.user_id import UserIdType
 from models import User
-from settings import RESET_PASSWORD_TOKEN_SECRET, VERIFICATION_TOKEN_SECRET
+from core.settings import RESET_PASSWORD_TOKEN_SECRET, VERIFICATION_TOKEN_SECRET
 
 logger = logging.getLogger(__name__)
 
