@@ -5,7 +5,7 @@ from fastapi_users.authentication.strategy.db import AccessTokenDatabase, Databa
 
 from api.dependencies.auth.access_tokens import get_access_token_db
 from models import AccessToken
-from settings import ACCESS_TOKEN_LIFETIME_SECONDS
+from core.settings import ACCESS_TOKEN_LIFETIME_SECONDS
 
 
 def get_database_strategy(
