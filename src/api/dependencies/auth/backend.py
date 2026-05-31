@@ -4,7 +4,7 @@ from api.dependencies.auth.strategy import get_database_strategy
 from api.auth.transport import bearer_transport
 
 auth_backend = AuthenticationBackend(
-    name='access-tokens-db',
+    name="access-tokens-db",
     transport=bearer_transport,
     get_strategy=get_database_strategy,
 )
