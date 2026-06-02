@@ -9,9 +9,14 @@ from starlette.responses import HTMLResponse
 from modules.users.api.auth.user_manager import UserManager
 from modules.users.api.dependencies.auth.fastapi_users import current_active_user
 from modules.users.api.dependencies.auth.user_manager import get_user_manager
-from modules.users.models import AccessToken, LoginToken, User
+from modules.users.models import LoginToken, User
+from modules.users.repositories import AccessTokenRepository
+from modules.users.repositories.login_token import LoginTokenRepository
+from modules.users.repositories.user import UserRepository
 from modules.users.schemas.auth import LoginResponse, UserCreateMagicLink
 from modules.users.schemas.user import UserCreate
+from modules.users.services.auth_service import AuthMagicLinkService
+from modules.users.settings import ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, LOGIN_TOKEN_EXPIRES_IN_TIMEDELTA
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -43,42 +48,34 @@ async def login_with_magic_link(
     }
     """
     try:
-        # Проверяем, существует ли пользователь
-        user = await user_manager.user_db.get_by_email(request.email)
-
-        if user is None:
-            user_create = UserCreate(
-                email=request.email,
-                password=secrets.token_urlsafe(32),
-                is_active=True,
-                is_verified=True
-            )
-
-            try:
-                user = await user_manager.create(user_create)
-                print(f"✓ Новый пользователь создан: {request.email}")
-            except Exception as e:
-                print(f"✗ Ошибка при создании пользователя: {e}")
-                return LoginResponse(
-                    message="Если этот email зарегистрирован, вы получите ссылку для входа"
-                )
-
-        if not user.is_active:
-            return LoginResponse(
-                message="Если этот email зарегистрирован, вы получите ссылку для входа"
-            )
-
-        # Генерируем токен входа (действителен 15 минут)
-        login_token = await _generate_login_token(user.id, user.email, user_manager.user_db)
-        try:
-            # await send_login_link(user.email, login_token)
-            print(f"✓ Email входа отправлен на {user.email}")
-        except Exception as e:
-            print(f"✗ Ошибка отправки email: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail="Ошибка отправки email. Попробуйте позже."
-            )
+        auth_service = AuthMagicLinkService(
+            UserRepository(user_manager.user_db.session), LoginTokenRepository(user_manager.user_db.session)
+        )
+        auth_service.login_magic_link(request.email)
+        # user_repository = UserRepository(user_manager.user_db.session)
+        # user = await user_repository.get_by_email(request.email)
+        #
+        # if user is None:
+        #     await user_repository.create(request.email)
+        #
+        # if not user.is_active:
+        #     return LoginResponse(
+        #         message="Если этот email зарегистрирован, вы получите ссылку для входа"
+        #     )
+        #
+        # login_token = await LoginTokenRepository(user_manager.user_db.session).generate(
+        #     user_id=user.id,
+        #     expires_at=datetime.now(datetime.UTC) + LOGIN_TOKEN_EXPIRES_IN_TIMEDELTA,
+        # )
+        # try:
+        #     await send_login_link(user.email, login_token)
+        #     print(f"✓ Email входа отправлен на {user.email}")
+        # except Exception as e:
+        #     print(f"✗ Ошибка отправки email: {e}")
+        #     raise HTTPException(
+        #         status_code=500,
+        #         detail="Ошибка отправки email. Попробуйте позже."
+        #     )
 
         return LoginResponse(
             message="Ссылка для входа отправлена на ваш email"
@@ -107,19 +104,19 @@ async def verify_login(
     user_manager: UserManager = Depends(get_user_manager),
 ):
     try:
-        # Шаг 1: Декодируем токен входа
-        payload = await _decode_login_token(token, user_db=user_manager.user_db)
-        user_id = payload.get("user_id")
-        email = payload.get("email")
+        user_repository = UserRepository(user_manager.user_db.session)
+        login_token = await LoginTokenRepository(user_manager.user_db.session).get(token)
+        user = await user_repository.get(login_token.user_id)
 
-        if not user_id or not email:
+        if not user.id or not user.email:
             raise ValueError("Неверный токен")
 
         # Шаг 2: Получаем пользователя из БД
-        user = await user_manager.user_db.get_by_email(email)
+        # user = await user_manager.user_db.get_by_email(user.email)
+        user = await user_repository.get_by_email(user.email)
 
         if user is None:
-            raise ValueError("Пользователь не найден")
+            raise ValueError("User not found")
 
         # Шаг 3: Проверяем, активен ли пользователь
         if not user.is_active:
@@ -166,10 +163,9 @@ async def verify_login(
             )
 
         # Шаг 4: Генерируем access token и сохраняем в БД
-        access_token = await _generate_access_token(
-            user.id,
-            user.email,
-            user_manager.user_db
+        access_token = await AccessTokenRepository(user_manager.user_db.session).generate(
+            user_id=user.id,
+            expires_at=datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
 
         print(f"✓ Пользователь {user.email} вошел через Magic Link")
@@ -437,66 +433,3 @@ async def verify_login(
             """,
             status_code=500
         )
-
-async def _generate_access_token(
-    user_id: str,
-    email: str,
-    user_db,
-    expires_in_hours: int = 24
-) -> str:
-    # 1. Генерируем случайный токен (64 символа)
-    token = secrets.token_urlsafe(48)
-
-    # 2. Вычисляем время истечения
-    expires_at = datetime.utcnow() + timedelta(hours=expires_in_hours)
-
-    # 3. Получаем сессию БД
-    session = user_db.session
-
-    # 4. Создаем запись в БД
-    session.add(AccessToken(
-        token=token,
-        user_id=user_id,
-        expires_at=expires_at,
-        is_active=True
-    ))
-
-    # 5. Сохраняем в БД
-    await session.commit()
-
-    # 6. Возвращаем токен
-    return token
-
-
-async def _generate_login_token(user_id: str, email: str, user_db, expires_in_minutes: int = 15) -> str:
-    """Генерирует обычный токен и сохраняет в БД."""
-    token = secrets.token_urlsafe(48)
-    expires_at = datetime.utcnow() + timedelta(minutes=expires_in_minutes)
-
-    session = user_db.session
-    session.add(LoginToken(
-        token=token,
-        user_id=user_id,
-        expires_at=expires_at,
-        is_active=True,
-    ))
-    await session.commit()
-    return token
-
-
-async def _decode_login_token(token: str, user_db) -> dict:
-    session = user_db.session
-
-    query = select(LoginToken).where(
-        LoginToken.token == token,
-        LoginToken.is_active == True,
-        LoginToken.expires_at > datetime.utcnow()
-    )
-    result = await session.execute(query)
-    login_token_record = result.scalar_one_or_none()
-
-    if not login_token_record:
-        raise ValueError("Токен неверный или истек")
-
-    user = await user_db.get(login_token_record.user_id)
-    return {"user_id": str(user.id), "email": user.email}
