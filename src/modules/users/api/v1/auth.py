@@ -1,5 +1,5 @@
+import datetime
 import secrets
-from datetime import datetime, timedelta
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -165,7 +165,7 @@ async def verify_login(
         # Шаг 4: Генерируем access token и сохраняем в БД
         access_token = await AccessTokenRepository(user_manager.user_db.session).generate(
             user_id=user.id,
-            expires_at=datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
 
         print(f"✓ Пользователь {user.email} вошел через Magic Link")

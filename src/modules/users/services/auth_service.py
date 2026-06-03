@@ -1,5 +1,7 @@
-from datetime import datetime
+# from datetime import datetime
+import datetime
 
+from modules.notifications.services.base_email import BaseEmailService
 from modules.users.exceptions import AuthErrorException
 from modules.users.repositories.login_token import LoginTokenRepository
 from modules.users.repositories.user import UserRepository
@@ -7,9 +9,15 @@ from modules.users.settings import LOGIN_TOKEN_EXPIRES_IN_TIMEDELTA
 
 
 class AuthMagicLinkService:
-    def __init__(self, user_repository: UserRepository, login_token_repository: LoginTokenRepository):
+    def __init__(
+        self,
+        user_repository: UserRepository,
+        login_token_repository: LoginTokenRepository,
+        email_service: BaseEmailService
+    ):
         self.user_repository = user_repository
         self.login_token_repository = login_token_repository
+        self.email_service = email_service
 
     async def login(self, email: str):
         user = await self.user_repository.get_by_email(email)
@@ -22,9 +30,10 @@ class AuthMagicLinkService:
 
         login_token = await self.login_token_repository.generate(
             user_id=user.id,
-            expires_at=datetime.now(datetime.UTC) + LOGIN_TOKEN_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + LOGIN_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
 
+        self.email_service.send_login_code_email(user.email, login_token)
         # send_login_link(user.email, login_token)
 
         # try:
