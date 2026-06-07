@@ -108,11 +108,11 @@ async def verify_login(
 ):
     try:
         user_repository = UserRepository(user_manager.user_db.session)
-        login_token = await LoginCodeRepository(user_manager.user_db.session).get(token)
-        user = await user_repository.get(login_token.user_id)
+        login_code = await LoginCodeRepository(user_manager.user_db.session).get(token)
+        user = await user_repository.get(login_code.user_id)
 
         if not user.id or not user.email:
-            raise ValueError("Неверный токен")
+            raise ValueError("Code is incorrect")
 
         # Шаг 2: Получаем пользователя из БД
         # user = await user_manager.user_db.get_by_email(user.email)
