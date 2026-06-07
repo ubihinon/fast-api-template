@@ -1,7 +1,7 @@
 from starlette_admin.contrib.sqla import Admin, ModelView
 
 from core.database import engine
-from modules.users.models import AccessToken, LoginToken, User
+from modules.users.models import AccessToken, LoginCode, User
 
 
 def setup_admin(app):
@@ -10,6 +10,6 @@ def setup_admin(app):
 
     admin.add_view(ModelView(User))
     admin.add_view(ModelView(AccessToken))
-    admin.add_view(ModelView(LoginToken))
+    admin.add_view(ModelView(LoginCode))
 
     return admin

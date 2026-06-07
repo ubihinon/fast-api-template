@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 from fastapi import BackgroundTasks
-from pydantic import EmailStr
+from pydantic import EmailStr, NameEmail
 
 from .base_email import BaseEmailService, EmailPayload
 from ..settings import EmailSettings
@@ -10,18 +10,22 @@ class UsersEmailService(BaseEmailService):
     def __init__(self, settings: EmailSettings):
         super().__init__(settings)
 
-    async def send_login_code_email(self, email: EmailStr) -> bool:
+    async def send_login_code_email(self, email: NameEmail, login_code) -> bool:
         """
         Асинхронная отправка приветственного письма новому пользователю с использованием HTML-шаблона.
         """
         payload = EmailPayload(
             recipients=[email],
             subject="Добро пожаловать в наш сервис!",
-            body={
-                "action_url": "https://example.com/dashboard"
-            }
+            body="https://example.com/dashboard"
+            # body={
+            #     "type": "list_type",
+            #     "input_value": {"action_url": "https://example.com/dashboard"},
+            #     "input_type": dict
+            # }
         )
-        return await self.send_email_async(payload, template_name="welcome.html")
+        await self.send_email_async(payload, template_name="welcome.html")
+        return True
 
 
     async def send_welcome_email(self, email: EmailStr) -> bool:
@@ -31,9 +35,10 @@ class UsersEmailService(BaseEmailService):
         payload = EmailPayload(
             recipients=[email],
             subject="Добро пожаловать в наш сервис!",
-            body={
-                "action_url": "https://example.com/dashboard"
-            }
+            # body="https://example.com/dashboard"
+            # body={
+            #     "action_url": "https://example.com/dashboard"
+            # }
         )
         return await self.send_email_async(payload, template_name="welcome.html")
 

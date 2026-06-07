@@ -6,17 +6,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from starlette.responses import HTMLResponse
 
-from modules.users.api.auth.user_manager import UserManager
-from modules.users.api.dependencies.auth.fastapi_users import current_active_user
-from modules.users.api.dependencies.auth.user_manager import get_user_manager
-from modules.users.models import LoginToken, User
+from modules.notifications.services.users_email import UsersEmailService
+from modules.notifications.settings import EmailSettings
+from modules.users.dependencies import get_user_manager
+from modules.users.fastapi_users_config import current_active_user
+from modules.users.manager import UserManager
+from modules.users.models import User
 from modules.users.repositories import AccessTokenRepository
-from modules.users.repositories.login_token import LoginTokenRepository
+from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
-from modules.users.schemas.auth import LoginResponse, UserCreateMagicLink
+from modules.users.schemas.auth import LoginResponse, LoginWithEmailRequestSchema
 from modules.users.schemas.user import UserCreate
 from modules.users.services.auth_service import AuthMagicLinkService
-from modules.users.settings import ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, LOGIN_TOKEN_EXPIRES_IN_TIMEDELTA
+from modules.users.settings import ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -28,8 +30,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/magic/login", response_model=LoginResponse)
 async def login_with_magic_link(
-    # request: LoginWithEmailRequest,
-    request: UserCreateMagicLink,
+    request: LoginWithEmailRequestSchema,
     user_manager: UserManager = Depends(get_user_manager),
 ):
     """
@@ -49,9 +50,11 @@ async def login_with_magic_link(
     """
     try:
         auth_service = AuthMagicLinkService(
-            UserRepository(user_manager.user_db.session), LoginTokenRepository(user_manager.user_db.session)
+            UserRepository(user_manager.user_db.session),
+            LoginCodeRepository(user_manager.user_db.session),
+            UsersEmailService(EmailSettings())
         )
-        auth_service.login_magic_link(request.email)
+        await auth_service.login(request.email)
         # user_repository = UserRepository(user_manager.user_db.session)
         # user = await user_repository.get_by_email(request.email)
         #
@@ -65,7 +68,7 @@ async def login_with_magic_link(
         #
         # login_token = await LoginTokenRepository(user_manager.user_db.session).generate(
         #     user_id=user.id,
-        #     expires_at=datetime.now(datetime.UTC) + LOGIN_TOKEN_EXPIRES_IN_TIMEDELTA,
+        #     expires_at=datetime.now(datetime.UTC) + LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         # )
         # try:
         #     await send_login_link(user.email, login_token)
@@ -105,7 +108,7 @@ async def verify_login(
 ):
     try:
         user_repository = UserRepository(user_manager.user_db.session)
-        login_token = await LoginTokenRepository(user_manager.user_db.session).get(token)
+        login_token = await LoginCodeRepository(user_manager.user_db.session).get(token)
         user = await user_repository.get(login_token.user_id)
 
         if not user.id or not user.email:

@@ -47,9 +47,9 @@ class BaseEmailService:
     ) -> MessageSchema:
         # Если используется шаблон, тело письма передается как контекст Jinja2 (словарь)
         body = payload.body
-        if template_name and not isinstance(body, dict):
-            logger.warning("При использовании шаблона 'body' должен быть словарем (контекстом шаблона).")
-            body = {}
+        # if template_name and not isinstance(body, dict):
+        #     logger.warning("При использовании шаблона 'body' должен быть словарем (контекстом шаблона).")
+        #     body = {}
 
         return MessageSchema(
             subject=payload.subject,
