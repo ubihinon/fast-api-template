@@ -5,11 +5,5 @@ class LoginResponse(schemas.BaseModel):
     message: str
 
 
-class VerifyLoginResponse(schemas.BaseModel):
-    """Ответ на верификацию входа."""
-    access_token: str
-    token_type: str = "bearer"
-
-
-class UserCreateMagicLink(schemas.BaseModel):
+class LoginWithEmailRequestSchema(schemas.BaseModel):
     email: schemas.EmailStr

@@ -1,11 +1,29 @@
+import sys
+from importlib import import_module
 from logging.config import fileConfig
+from pathlib import Path
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
 
-from models.base import Base
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root / "src"))
+
+
+from core.models.base import Base   # noqa: E402
+
+
+modules_to_import = [
+    "modules.users.models",
+]
+
+for module_path in modules_to_import:
+    try:
+        import_module(module_path)
+    except ImportError as e:
+        print(f"Warning: Could not import {module_path}: {e}")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,7 +39,6 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
-# target_metadata = None
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
