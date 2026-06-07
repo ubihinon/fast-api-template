@@ -11,7 +11,7 @@ class LoginCode(Base):
     __tablename__ = "login_code"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    code: Mapped[str] = mapped_column(String(6), unique=True, index=True, nullable=False)  # ← Заменили token на code
+    code: Mapped[str] = mapped_column(String(6), unique=True, index=True, nullable=False)
     user_id: Mapped[UserIdType] = mapped_column(
         Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False
     )
@@ -20,4 +20,4 @@ class LoginCode(Base):
     )
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)  # ← Отслеживание попыток
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
