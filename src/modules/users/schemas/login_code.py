@@ -18,6 +18,9 @@ class LoginCodeReadSchema(schemas.BaseModel):
     is_active: bool
     attempts: int
 
+    def is_expired(self) -> bool:
+        return self.expires_at <= datetime.datetime.now(datetime.UTC)
+
 
 class LoginWithEmailRequestSchema(schemas.BaseModel):
     email: EmailStr

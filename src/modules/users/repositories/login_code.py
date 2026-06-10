@@ -22,16 +22,21 @@ class LoginCodeRepository:
         await self.session.commit()
         return LoginCodeReadSchema.model_validate(login_code)
 
-    async def get(self, code: str) -> VerifyLoginRequestSchema:
+    async def get(self, code: str, user_id: UserIdType) -> LoginCodeReadSchema | None:
         query = select(LoginCode).where(
             LoginCode.code == code,
-            LoginCode.is_active == True,
-            LoginCode.expires_at > datetime.now(datetime.UTC)
+            LoginCode.user_id == user_id,
         )
         result = await self.session.execute(query)
         login_code_record = result.scalar_one_or_none()
 
-        if not login_code_record:
-            raise ValueError("Code is invalid or expired")
+        return LoginCodeReadSchema.model_validate(login_code_record) if login_code_record else None
 
-        return VerifyLoginRequestSchema.model_validate(login_code_record)
+    async def deactivate(self, login_code: LoginCodeReadSchema) -> LoginCodeReadSchema:
+        login_code.is_active = False
+        await self.session.commit()
+
+    async def increase_attempt(self, login_code: LoginCodeReadSchema) -> LoginCodeReadSchema:
+        login_code.attempts += 1
+        await self.session.commit()
+        return  LoginCodeReadSchema.model_validate(login_code)
