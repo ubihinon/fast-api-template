@@ -12,9 +12,9 @@ class AccessTokenRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def generate(self, user_id: UserIdType, expires_at: datetime.datetime) -> AccessTokenSchema:
+    async def generate(self, token: str, user_id: UserIdType, expires_at: datetime.datetime) -> AccessTokenSchema:
         access_token = AccessToken(
-            token=secrets.token_urlsafe(48),
+            token=token,
             user_id=user_id,
             expires_at=expires_at,
         )
