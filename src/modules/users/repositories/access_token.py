@@ -1,5 +1,4 @@
 import datetime
-import secrets
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

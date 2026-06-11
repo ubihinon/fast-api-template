@@ -1,9 +1,46 @@
+import datetime
+
 from fastapi_users import schemas
+from pydantic import ConfigDict, EmailStr
+
+from core.models.types import UserIdType
+
+# TODO SPLIT TO DIFFERENT FILES
 
 
-class LoginResponse(schemas.BaseModel):
-    message: str
+class LoginCodeReadSchema(schemas.BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    id: int
+    code: str
+    user_id: UserIdType
+    created_at: datetime.datetime
+    expires_at: datetime.datetime
+    is_active: bool
+
+    def is_expired(self) -> bool:
+        return self.expires_at <= datetime.datetime.now(datetime.UTC)
+
+
+class LoginAttemptReadSchema(schemas.BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    user_id: UserIdType
+    email: EmailStr
+    code_entered: str
+    is_correct: bool
+    ip_address: str
+    created_at: datetime.datetime
 
 
 class LoginWithEmailRequestSchema(schemas.BaseModel):
     email: schemas.EmailStr
+
+
+class VerifyLoginRequestSchema(schemas.BaseModel):
+    email: EmailStr
+    code: str
