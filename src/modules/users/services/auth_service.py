@@ -102,6 +102,7 @@ class AuthMagicLinkService:
 
         login_code = await self.login_code_repository.get_active(code, user.id)
         if not login_code:
+            # TODO SAVE REAL ip_address
             await self.login_attempt_repository.create(
                 user.id, user.email, code, False, ip_address="127.0.0.1"
             )
