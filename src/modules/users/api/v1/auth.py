@@ -16,6 +16,7 @@ from modules.users.fastapi_users_config import current_active_user
 from modules.users.manager import UserManager
 from modules.users.models import User
 from modules.users.repositories import AccessTokenRepository
+from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
 from modules.users.schemas.auth import LoginResponse, LoginWithEmailRequestSchema
@@ -58,6 +59,7 @@ async def login_with_magic_link(
         auth_service = AuthMagicLinkService(
             UserRepository(session),
             LoginCodeRepository(session),
+            LoginAttemptRepository(session),
             AccessTokenRepository(session),
             UsersEmailService(EmailSettings()),
         )
@@ -117,6 +119,7 @@ async def verify_login(
         auth_service = AuthMagicLinkService(
             UserRepository(session),
             LoginCodeRepository(session),
+            LoginAttemptRepository(session),
             AccessTokenRepository(session),
             UsersEmailService(EmailSettings())
         )

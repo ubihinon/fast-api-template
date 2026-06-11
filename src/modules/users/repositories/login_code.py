@@ -26,6 +26,8 @@ class LoginCodeRepository:
         query = select(LoginCode).where(
             LoginCode.code == code,
             LoginCode.user_id == user_id,
+            LoginCode.is_active == True,
+            LoginCode.expires_at > datetime.now(datetime.UTC)
         )
         result = await self.session.execute(query)
         login_code_record = result.scalar_one_or_none()

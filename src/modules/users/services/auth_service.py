@@ -13,6 +13,7 @@ from modules.users.exceptions import (
 from modules.users.manager import UserManager
 from modules.users.models import User
 from modules.users.repositories import AccessTokenRepository
+from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
 from modules.users.schemas.user import UserCreate
@@ -29,11 +30,13 @@ class AuthMagicLinkService:
         self,
         user_repository: UserRepository,
         login_code_repository: LoginCodeRepository,
+        login_attempt_repository: LoginAttemptRepository,
         access_token_repository: AccessTokenRepository,
         email_service: UsersEmailService,
     ):
         self.user_repository = user_repository
         self.login_code_repository = login_code_repository
+        self.login_attempt_repository = login_attempt_repository
         self.access_token_repository = access_token_repository
         self.email_service = email_service
 
@@ -86,22 +89,36 @@ class AuthMagicLinkService:
         except exceptions.UserNotExists:
             raise UserNotFoundException(email)
 
+        failed_attempts_count = await self.login_attempt_repository.get_failed_attempts_count(code, user.id)
+
+        if failed_attempts_count >= MAX_LOGIN_ATTEMPTS:
+            await self.login_attempt_repository.create(
+                user.id, user.email, code, False, ip_address='127.0.0.1'
+            )
+            raise LoginMaxNumberAttemptsException(
+                f"Maximum number of attempts exceeded ({MAX_LOGIN_ATTEMPTS}). Try again later"
+            )
+
         login_code = await self.login_code_repository.get(code, user.id)
         if not login_code:
-            await self.login_code_repository.increase_attempt(login_code)
+            await self.login_attempt_repository.create(
+                user.id, user.email, code, False, ip_address='127.0.0.1'
+            )
             raise LoginCodeInvalidException(code)
 
         if login_code.is_expired():
-            await self.login_code_repository.increase_attempt(login_code)
+            await self.login_attempt_repository.create(
+                user.id, user.email, code, False, ip_address='127.0.0.1'
+            )
             raise LoginCodeExpiredException(code)
 
         if not login_code.is_active:
-            await self.login_code_repository.increase_attempt(login_code)
+            await self.login_attempt_repository.create(
+                user.id, user.email, code, False, ip_address='127.0.0.1'
+            )
             raise LoginCodeInactiveException(code)
 
-        if login_code.attempts >= MAX_LOGIN_ATTEMPTS:
-            await self.login_code_repository.deactivate(login_code)
-            raise LoginMaxNumberAttemptsException(f"Maximum number of attempts exceeded ({MAX_LOGIN_ATTEMPTS})")
+        await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address='127.0.0.1')
 
         await self.login_code_repository.increase_attempt(login_code)
 
