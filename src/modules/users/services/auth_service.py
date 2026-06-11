@@ -6,8 +6,8 @@ from fastapi_users import exceptions
 
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.exceptions import (
-    AuthErrorException, LoginCodeExpiredException, LoginCodeInactiveException, LoginCodeInvalidException,
-    LoginMaxNumberAttemptsException,
+    AuthErrorException, LoginCodeInvalidException,
+    LoginCodeNotFoundException, LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
 from modules.users.manager import UserManager
@@ -16,6 +16,7 @@ from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
+from modules.users.schemas.responses import LoginAccessTokenResponseSchema
 from modules.users.schemas.user import UserCreate
 from modules.users.settings import (
     ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
@@ -83,7 +84,7 @@ class AuthMagicLinkService:
         random_number = secrets.randbelow(1000000)
         return str(random_number).zfill(6)
 
-    async def verify_login_code(self, email: str, code: str):
+    async def verify_login_code(self, email: str, code: str) -> LoginAccessTokenResponseSchema:
         try:
             user = await self.user_manager.get_by_email(email)
         except exceptions.UserNotExists:
@@ -93,34 +94,20 @@ class AuthMagicLinkService:
 
         if failed_attempts_count >= MAX_LOGIN_ATTEMPTS:
             await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address='127.0.0.1'
+                user.id, user.email, code, False, ip_address="127.0.0.1"
             )
             raise LoginMaxNumberAttemptsException(
                 f"Maximum number of attempts exceeded ({MAX_LOGIN_ATTEMPTS}). Try again later"
             )
 
-        login_code = await self.login_code_repository.get(code, user.id)
+        login_code = await self.login_code_repository.get_active(code, user.id)
         if not login_code:
             await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address='127.0.0.1'
+                user.id, user.email, code, False, ip_address="127.0.0.1"
             )
             raise LoginCodeInvalidException(code)
 
-        if login_code.is_expired():
-            await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address='127.0.0.1'
-            )
-            raise LoginCodeExpiredException(code)
-
-        if not login_code.is_active:
-            await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address='127.0.0.1'
-            )
-            raise LoginCodeInactiveException(code)
-
         await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address='127.0.0.1')
-
-        await self.login_code_repository.increase_attempt(login_code)
 
         logger.info(f"✓ Code {code} is correct for user_id={user.id}")
 
@@ -130,109 +117,14 @@ class AuthMagicLinkService:
             expires_at=datetime.datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
 
-        await self.login_code_repository.deactivate(login_code)
+        is_deactivated = await self.login_code_repository.deactivate(login_code.id)
+        if is_deactivated is None:
+            raise LoginCodeNotFoundException()
 
         logger.info(f"✓ User {user.email} logged in via Magic Link")
-        logger.info(f"✓ Access token: {access_token[:20]}...")
+        logger.info(f"✓ Access token: {access_token.token[:10]}...")
 
-    # async def _verify_login_code(
-    #     self,
-    #     code: str,
-    #     user_id: int,
-    #     user_db,
-    #     max_attempts: int = 5
-    # ) -> bool:
-    #     """
-    #     Проверяет 6-значный код для входа.
-    #
-    #     Args:
-    #         code: Код, введенный пользователем (например, "123456")
-    #         user_id: ID пользователя
-    #         user_db: SQLAlchemyUserDatabase
-    #         max_attempts: Максимальное количество попыток
-    #
-    #     Returns:
-    #         True если код верный, False если неверный
-    #
-    #     Raises:
-    #         ValueError: Если код истек, деактивирован или превышены попытки
-    #     """
-    #
-    #     session = user_db.session
-    #
-    #     try:
-    #         # Ищем активный код
-    #         query = select(LoginToken).where(
-    #             LoginToken.code == code,
-    #             LoginToken.user_id == user_id,
-    #             LoginToken.is_active == True,
-    #             LoginToken.expires_at > datetime.utcnow()
-    #         )
-    #         result = await session.execute(query)
-    #         login_token = result.scalar_one_or_none()
-    #
-    #         # Если кода нет
-    #         if not login_token:
-    #             raise ValueError("Код неверный или истек")
-    #
-    #         # Проверяем количество попыток
-    #         if login_token.attempts >= max_attempts:
-    #             # Деактивируем код после превышения попыток
-    #             login_token.is_active = False
-    #             await session.commit()
-    #             raise ValueError(f"Превышено максимальное количество попыток ({max_attempts})")
-    #
-    #         # Увеличиваем счетчик попыток
-    #         login_token.attempts += 1
-    #         await session.commit()
-    #
-    #         print(f"✓ Код {code} верный для user_id={user_id}")
-    #         return True
-    #
-    #     except ValueError as e:
-    #         print(f"✗ Ошибка проверки кода: {e}")
-    #         raise
-    #     except Exception as e:
-    #         print(f"✗ Неожиданная ошибка: {e}")
-    #         raise
-
-    # """Вход по 6-значному коду."""
-    # try:
-    #     # Получаем пользователя
-    #     user = await user_manager.user_db.get_by_email(request.email)
-    #
-    #     if user is None:
-    #         raise ValueError("Пользователь не найден")
-    #
-    #     # Проверяем код
-    #     try:
-    #         await _verify_login_code(request.code, user.id, user_manager.user_db)
-    #     except ValueError as e:
-    #         return JSONResponse(
-    #             content={"error": str(e)},
-    #             status_code=400
-    #         )
-    #
-    #     # Генерируем access token
-    #     access_token = await _generate_access_token(
-    #         user.id,
-    #         user.email,
-    #         user_manager.user_db
-    #     )
-    #
-    #     # Деактивируем код после использования
-    #     await _deactivate_login_code(request.code, user.id, user_manager.user_db)
-    #
-    #     print(f"✓ Пользователь {user.email} вошел с кодом")
-    #
-    #     return {
-    #         "access_token": access_token,
-    #         "token_type": "bearer",
-    #         "user": {
-    #             "id": str(user.id),
-    #             "email": user.email
-    #         }
-    #     }
+        return LoginAccessTokenResponseSchema.model_validate(access_token.token)
 
     async def get_user(self, email: str):
         user = await self.repository.get_by_email(email)

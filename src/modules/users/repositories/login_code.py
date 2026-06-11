@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
 from modules.users.models import LoginCode
-from modules.users.schemas.login_code import LoginCodeReadSchema, VerifyLoginRequestSchema
+from modules.users.schemas.auth import LoginCodeReadSchema
 
 
 class LoginCodeRepository:
@@ -22,23 +22,28 @@ class LoginCodeRepository:
         await self.session.commit()
         return LoginCodeReadSchema.model_validate(login_code)
 
-    async def get(self, code: str, user_id: UserIdType) -> LoginCodeReadSchema | None:
+    async def get_active(self, code: str, user_id: UserIdType) -> LoginCodeReadSchema | None:
         query = select(LoginCode).where(
             LoginCode.code == code,
             LoginCode.user_id == user_id,
             LoginCode.is_active == True,
-            LoginCode.expires_at > datetime.now(datetime.UTC)
+            LoginCode.expires_at > datetime.datetime.now(datetime.UTC)
         )
         result = await self.session.execute(query)
         login_code_record = result.scalar_one_or_none()
 
         return LoginCodeReadSchema.model_validate(login_code_record) if login_code_record else None
 
-    async def deactivate(self, login_code: LoginCodeReadSchema) -> LoginCodeReadSchema:
+    async def deactivate(self, code_id: int) -> LoginCodeReadSchema | None:
+        query = select(LoginCode).where(LoginCode.id == code_id)
+        result = await self.session.execute(query)
+        login_code = result.scalar_one_or_none()
+
+        if login_code is None:
+            return None
+
         login_code.is_active = False
         await self.session.commit()
+        await self.session.refresh(login_code)
 
-    async def increase_attempt(self, login_code: LoginCodeReadSchema) -> LoginCodeReadSchema:
-        login_code.attempts += 1
-        await self.session.commit()
-        return  LoginCodeReadSchema.model_validate(login_code)
+        return LoginCodeReadSchema.model_validate(login_code)
