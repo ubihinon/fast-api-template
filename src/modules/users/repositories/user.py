@@ -1,11 +1,8 @@
-import secrets
-
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.users.manager import UserManager
 from modules.users.models import User
-from modules.users.schemas.user import UserCreate, UserRead
+from modules.users.dtos.user import UserRead
 
 
 class UserRepository:

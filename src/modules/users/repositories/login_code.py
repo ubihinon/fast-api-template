@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
 from modules.users.models import LoginCode
-from modules.users.schemas.auth import LoginCodeReadSchema
+from modules.users.dtos.auth import LoginCodeReadSchema
 
 
 class LoginCodeRepository:
