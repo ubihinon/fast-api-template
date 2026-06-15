@@ -1,7 +1,8 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 
+from core.utils.http import get_client_ip
 from modules.notifications.services.users_email import UsersEmailService
 from modules.notifications.settings import EmailSettings
 from modules.users.dependencies import get_user_manager
@@ -14,7 +15,7 @@ from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
 from modules.users.schemas.requests import LoginWithEmailRequestSchema, VerifyLoginRequestSchema
-from modules.users.schemas.responses import LoginResponse
+from modules.users.schemas.responses import LoginAccessTokenResponseSchema, LoginResponse
 from modules.users.services.auth_service import AuthMagicLinkService
 
 logger = logging.getLogger(__name__)
@@ -24,9 +25,10 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/magic/login", response_model=LoginResponse)
 async def login_with_magic_link(
-    request: LoginWithEmailRequestSchema,
+    request: Request,
+    request_data: LoginWithEmailRequestSchema,
     user_manager: UserManager = Depends(get_user_manager),
-):
+) -> LoginResponse:
     """
     Example:
     POST /magic/login
@@ -49,8 +51,9 @@ async def login_with_magic_link(
             LoginAttemptRepository(session),
             AccessTokenRepository(session),
             UsersEmailService(EmailSettings()),
+            get_client_ip(request)
         )
-        await auth_service.login(request.email)
+        await auth_service.login(request_data.email)
         # user_repository = UserRepository(user_manager.user_db.session)
         # user = await user_repository.get_by_email(request.email)
         #
@@ -97,9 +100,10 @@ async def logout(
 
 @router.post("/magic/verify-login")
 async def verify_login(
-    request: VerifyLoginRequestSchema,
+    request: Request,
+    request_data: VerifyLoginRequestSchema,
     user_manager: UserManager = Depends(get_user_manager),
-):
+) -> LoginAccessTokenResponseSchema:
     try:
         session = user_manager.user_db.session
 
@@ -108,9 +112,11 @@ async def verify_login(
             LoginCodeRepository(session),
             LoginAttemptRepository(session),
             AccessTokenRepository(session),
-            UsersEmailService(EmailSettings())
+            UsersEmailService(EmailSettings()),
+            get_client_ip(request)
         )
-        return await auth_service.verify_login_code(request.email, request.code)
+        access_token = await auth_service.verify_login_code(request_data.email, request_data.code)
+        return LoginAccessTokenResponseSchema.model_validate({'access_token': access_token.token})
     except UserNotFoundException as e:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(e))
     except LoginCodeInvalidException as e:
