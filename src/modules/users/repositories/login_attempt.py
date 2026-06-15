@@ -27,12 +27,13 @@ class LoginAttemptRepository:
         await self.session.commit()
         return LoginAttemptReadSchema.model_validate(login_code)
 
-    async def get_failed_attempts_count(self, code: str, user_id: UserIdType) -> int:
+    async def get_failed_attempts_count(self, code: str, user_id: UserIdType, ip_address: str) -> int:
         query = select(func.count()).select_from(LoginAttempt).where(
             LoginAttempt.code_entered == code,
             LoginAttempt.user_id == user_id,
             LoginAttempt.is_correct == False,
-            LoginAttempt.created_at >= (datetime.datetime.now(datetime.UTC) - LOGIN_CODE_EXPIRES_IN_TIMEDELTA)
+            LoginAttempt.created_at >= (datetime.datetime.now(datetime.UTC) - LOGIN_CODE_EXPIRES_IN_TIMEDELTA),
+            LoginAttempt.ip_address == ip_address,
         )
         result = await self.session.scalar(query)
         return result

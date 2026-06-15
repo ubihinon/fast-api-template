@@ -5,6 +5,7 @@ import secrets
 from fastapi_users import exceptions
 
 from modules.notifications.services.users_email import UsersEmailService
+from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.exceptions import (
     AuthErrorException, LoginCodeInvalidException,
     LoginCodeNotFoundException, LoginMaxNumberAttemptsException,
@@ -16,7 +17,6 @@ from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
-from modules.users.schemas.responses import LoginAccessTokenResponseSchema
 from modules.users.dtos.user import UserCreate
 from modules.users.settings import (
     ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
@@ -34,12 +34,14 @@ class AuthMagicLinkService:
         login_attempt_repository: LoginAttemptRepository,
         access_token_repository: AccessTokenRepository,
         email_service: UsersEmailService,
+        ip_address: str,
     ):
         self.user_repository = user_repository
         self.login_code_repository = login_code_repository
         self.login_attempt_repository = login_attempt_repository
         self.access_token_repository = access_token_repository
         self.email_service = email_service
+        self.ip_address = ip_address
 
         user_db = User.get_db(user_repository.session)
         self.user_manager = UserManager(user_db)
@@ -84,17 +86,19 @@ class AuthMagicLinkService:
         random_number = secrets.randbelow(1000000)
         return str(random_number).zfill(6)
 
-    async def verify_login_code(self, email: str, code: str) -> LoginAccessTokenResponseSchema:
+    async def verify_login_code(self, email: str, code: str) -> AccessTokenSchema:
         try:
             user = await self.user_manager.get_by_email(email)
         except exceptions.UserNotExists:
             raise UserNotFoundException(email)
 
-        failed_attempts_count = await self.login_attempt_repository.get_failed_attempts_count(code, user.id)
+        failed_attempts_count = await self.login_attempt_repository.get_failed_attempts_count(
+            code, user.id, self.ip_address
+        )
 
         if failed_attempts_count >= MAX_LOGIN_ATTEMPTS:
             await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address="127.0.0.1"
+                user.id, user.email, code, False, ip_address=self.ip_address
             )
             raise LoginMaxNumberAttemptsException(
                 f"Maximum number of attempts exceeded ({MAX_LOGIN_ATTEMPTS}). Try again later"
@@ -102,13 +106,12 @@ class AuthMagicLinkService:
 
         login_code = await self.login_code_repository.get_active(code, user.id)
         if not login_code:
-            # TODO SAVE REAL ip_address
             await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address="127.0.0.1"
+                user.id, user.email, code, False, ip_address=self.ip_address
             )
             raise LoginCodeInvalidException(code)
 
-        await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address='127.0.0.1')
+        await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address=self.ip_address)
 
         logger.info(f"✓ Code {code} is correct for user_id={user.id}")
 
@@ -125,7 +128,7 @@ class AuthMagicLinkService:
         logger.info(f"✓ User {user.email} logged in via Magic Link")
         logger.info(f"✓ Access token: {access_token.token[:10]}...")
 
-        return LoginAccessTokenResponseSchema.model_validate(access_token.token)
+        return access_token
 
     async def get_user(self, email: str):
         user = await self.repository.get_by_email(email)
