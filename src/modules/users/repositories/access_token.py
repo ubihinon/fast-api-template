@@ -3,8 +3,8 @@ import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
+from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.models import AccessToken
-from modules.users.schemas.access_token import AccessTokenSchema
 
 
 class AccessTokenRepository:

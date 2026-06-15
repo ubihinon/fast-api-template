@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
 from modules.users.models import LoginAttempt
-from modules.users.schemas.auth import LoginAttemptReadSchema
+from modules.users.dtos.auth import LoginAttemptReadSchema
 from modules.users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 

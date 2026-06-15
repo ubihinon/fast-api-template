@@ -13,7 +13,7 @@ from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
-from modules.users.schemas.auth import LoginWithEmailRequestSchema, VerifyLoginRequestSchema
+from modules.users.schemas.requests import LoginWithEmailRequestSchema, VerifyLoginRequestSchema
 from modules.users.schemas.responses import LoginResponse
 from modules.users.services.auth_service import AuthMagicLinkService
 

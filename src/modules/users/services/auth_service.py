@@ -17,7 +17,7 @@ from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
 from modules.users.schemas.responses import LoginAccessTokenResponseSchema
-from modules.users.schemas.user import UserCreate
+from modules.users.dtos.user import UserCreate
 from modules.users.settings import (
     ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
     MAX_LOGIN_ATTEMPTS,

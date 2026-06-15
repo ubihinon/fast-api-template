@@ -5,8 +5,6 @@ from pydantic import ConfigDict, EmailStr
 
 from core.models.types import UserIdType
 
-# TODO SPLIT TO DIFFERENT FILES
-
 
 class LoginCodeReadSchema(schemas.BaseModel):
     model_config = ConfigDict(
@@ -37,10 +35,14 @@ class LoginAttemptReadSchema(schemas.BaseModel):
     created_at: datetime.datetime
 
 
-class LoginWithEmailRequestSchema(schemas.BaseModel):
-    email: schemas.EmailStr
+class AccessTokenSchema(schemas.BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
-
-class VerifyLoginRequestSchema(schemas.BaseModel):
-    email: EmailStr
-    code: str
+    id: int
+    token: str
+    user_id: UserIdType
+    created_at: datetime.datetime
+    expires_at: datetime.datetime
+    is_active: bool
