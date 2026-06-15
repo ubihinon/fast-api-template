@@ -27,7 +27,6 @@ class UsersEmailService(BaseEmailService):
         await self.send_email_async(payload, template_name="welcome.html")
         return True
 
-
     async def send_welcome_email(self, email: EmailStr) -> bool:
         """
         Асинхронная отправка приветственного письма новому пользователю с использованием HTML-шаблона.

@@ -12,12 +12,6 @@ logger = logging.getLogger("email_service")
 
 
 class BaseEmailService:
-    """
-    Базовый класс email-сервиса, инкапсулирующий работу с fastapi_mail.
-    Предоставляет методы для синхронной, асинхронной и фоновой отправки писем,
-    а также поддержку HTML-шаблонов Jinja2.
-    """
-
     def __init__(self, settings: EmailSettings):
         self.settings = settings
         self.config = self._get_connection_config()

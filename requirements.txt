@@ -55,3 +55,6 @@ annotated-doc==0.0.4
 markdown-it-py==4.2.0
 pygments==2.20.0
 mdurl==0.1.2
+iniconfig==2.3.0
+pluggy==1.6.0
+pytest==9.1.0
