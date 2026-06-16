@@ -58,3 +58,5 @@ mdurl==0.1.2
 iniconfig==2.3.0
 pluggy==1.6.0
 pytest==9.1.0
+pytest-asyncio==1.4.0
+aiosqlite==0.22.1
