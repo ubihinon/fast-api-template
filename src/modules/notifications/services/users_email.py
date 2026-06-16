@@ -1,25 +1,23 @@
-from typing import Any, Dict, Optional
+import datetime
 from fastapi import BackgroundTasks
-from pydantic import NameEmail
 
 from .base_email import BaseEmailService, EmailPayload
 from ..settings import EmailSettings
-from ...users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 
 class UsersEmailService(BaseEmailService):
     def __init__(self, settings: EmailSettings):
         super().__init__(settings)
 
-    async def send_login_code_email(self, email: NameEmail, login_code: str) -> bool:
+    async def send_login_code_email(self, email: str, login_code: str, expires_in: datetime.timedelta) -> bool:
         payload = EmailPayload(
             recipients=[email],
             subject="Login code",
-            body={'email': email, "code": login_code, 'code_expires_in': LOGIN_CODE_EXPIRES_IN_TIMEDELTA},
+            body={'email': email, "code": login_code, 'code_expires_in': expires_in},
         )
         return await self.send_email_async(payload, template_name="users/login_code.html")
 
-    async def send_welcome_email(self, email: NameEmail) -> bool:
+    async def send_welcome_email(self, email: str) -> bool:
         payload = EmailPayload(
             recipients=[email],
             subject="Welcome to our service!",
@@ -27,7 +25,7 @@ class UsersEmailService(BaseEmailService):
         )
         return await self.send_email_async(payload, template_name="users/welcome.html")
 
-    def send_welcome_email_task(self, email: NameEmail) -> bool:
+    def send_welcome_email_task(self, email: str) -> bool:
         payload = EmailPayload(
             recipients=[email],
             subject="Welcome to our service!",

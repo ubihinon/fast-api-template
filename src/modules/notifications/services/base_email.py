@@ -62,10 +62,6 @@ class BaseEmailService:
         template_name: Optional[str] = None,
         subtype: MessageType = MessageType.html
     ) -> bool:
-        """
-        Асинхронная отправка email.
-        Подходит для вызова внутри асинхронных функций FastAPI.
-        """
         message = self._prepare_message(payload, subtype)
         try:
             await self.fastmail.send_message(message, template_name=template_name)
