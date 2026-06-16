@@ -34,27 +34,3 @@ class UsersEmailService(BaseEmailService):
             body={'email': email, "action_url": "https://example.com/dashboard"},
         )
         return self.send_email_background(BackgroundTasks(), payload, template_name="users/welcome.html")
-
-
-    # def send_password_reset_background(
-    #     self,
-    #     background_tasks: BackgroundTasks,
-    #     email: EmailStr,
-    #     reset_token: str
-    # ) -> None:
-    #     """
-    #     Отправка письма для сброса пароля в фоновом режиме (BackgroundTasks).
-    #     """
-    #     payload = EmailPayload(
-    #         recipients=[email],
-    #         subject="Восстановление доступа к аккаунту",
-    #         body={
-    #             "reset_url": f"https://example.com/reset-password?token={reset_token}"
-    #         }
-    #     )
-    #     # Добавляем задачу отправки в фоновые задачи FastAPI
-    #     self.send_email_background(
-    #         background_tasks=background_tasks,
-    #         payload=payload,
-    #         template_name="password_reset.html"
-    #     )
