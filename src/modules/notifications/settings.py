@@ -3,6 +3,10 @@ from typing import Optional
 from pydantic import EmailStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from environs import env
+
+env.read_env()
+
 
 class EmailSettings(BaseSettings):
     MAIL_USERNAME: str = env("MAIL_USERNAME")
