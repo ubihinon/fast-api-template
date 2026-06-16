@@ -28,6 +28,8 @@ from core.models.mixins import CreatedUpdatedMixin, IdIntPkMixin
 
 
 class User(IdIntPkMixin, CreatedUpdatedMixin, SQLAlchemyBaseUserTable[UserIdType], Base):
+    __table_args__ = {"extend_existing": True}
+
     @classmethod
     def get_db(cls, session: AsyncSession):
         return SQLAlchemyUserDatabase(session, cls)

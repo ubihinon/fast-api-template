@@ -9,6 +9,7 @@ from core.models.types import UserIdType
 
 class LoginCode(Base):
     __tablename__ = "login_code"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     code: Mapped[str] = mapped_column(String(6), unique=True, index=True, nullable=False)

@@ -11,6 +11,7 @@ from core.models.types import UserIdType
 
 class AccessToken(SQLAlchemyBaseAccessTokenTable[UserIdType], Base):
     __tablename__ = "access_token"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     token: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)

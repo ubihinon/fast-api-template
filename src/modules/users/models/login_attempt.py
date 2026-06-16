@@ -9,6 +9,7 @@ from core.models.types import UserIdType
 
 class LoginAttempt(Base):
     __tablename__ = "login_attempt"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[UserIdType] = mapped_column(
