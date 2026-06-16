@@ -2,6 +2,7 @@ import pytest
 
 from modules.notifications.services.users_email import UsersEmailService
 from modules.notifications.settings import EmailSettings
+from modules.users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 
 @pytest.mark.unit
@@ -17,7 +18,7 @@ class TestNotificationService:
         login_code = await login_code_factory(test_session, user.id)
 
         service = UsersEmailService(EmailSettings())
-        result = await service.send_login_code_email(user.email, login_code.code)
+        result = await service.send_login_code_email(user.email, login_code.code, LOGIN_CODE_EXPIRES_IN_TIMEDELTA)
         assert result
 
     async def test_send_welcome_email(

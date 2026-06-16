@@ -24,6 +24,7 @@ from modules.users.settings import (
 )
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 class AuthMagicLinkService:
@@ -67,19 +68,8 @@ class AuthMagicLinkService:
             expires_at=datetime.datetime.now(datetime.UTC) + LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
         logger.info(f"Login code sent to {user.email}")
-        # await self.email_service.send_login_code_email(user.email, login_token)
+        await self.email_service.send_login_code_email(user.email, login_code.code, LOGIN_CODE_EXPIRES_IN_TIMEDELTA)
 
-        # try:
-        #     await send_login_link(user.email, login_token)
-        #     print(f"✓ Email входа отправлен на {user.email}")
-        # except Exception as e:
-        #     print(f"✗ Ошибка отправки email: {e}")
-        #     raise HTTPException(
-        #         status_code=500,
-        #         detail="Ошибка отправки email. Попробуйте позже."
-        #     )
-
-        # user = await self.repository.create(email, name)
         return user
 
     def generate_code(self):
