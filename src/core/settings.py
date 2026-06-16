@@ -1,3 +1,5 @@
+import logging
+
 from environs import env
 
 env.read_env()
@@ -16,3 +18,13 @@ RESET_PASSWORD_TOKEN_SECRET = env("RESET_PASSWORD_TOKEN_SECRET", default="<PASSW
 VERIFICATION_TOKEN_SECRET = env("VERIFICATION_TOKEN_SECRET", default="<PASSWORD>")
 
 BEARER_TRANSPORT_TOKEN_URL = "api/v1/auth/login"
+
+
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.StreamHandler(),
+#         # logging.FileHandler('email.log')
+#     ]
+# )

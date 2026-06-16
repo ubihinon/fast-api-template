@@ -36,25 +36,25 @@ class BaseEmailService:
     def _prepare_message(
         self,
         payload: EmailPayload,
-        template_name: Optional[str] = None,
         subtype: MessageType = MessageType.html
     ) -> MessageSchema:
-        # Если используется шаблон, тело письма передается как контекст Jinja2 (словарь)
         body = payload.body
-        # if template_name and not isinstance(body, dict):
-        #     logger.warning("При использовании шаблона 'body' должен быть словарем (контекстом шаблона).")
-        #     body = {}
+        params = {
+            "subject": payload.subject,
+            "recipients": payload.recipients,
+            "template_body": body,
+            "subtype": subtype,
+        }
+        if payload.attachments:
+            params["attachments"] = payload.attachments
+        if payload.cc:
+            params["cc"] = payload.cc
+        if payload.bcc:
+            params["bcc"] = payload.bcc
+        if payload.reply_to:
+            params["reply_to"] = payload.reply_to
 
-        return MessageSchema(
-            subject=payload.subject,
-            recipients=payload.recipients,
-            body=body,
-            subtype=subtype,
-            attachments=payload.attachments,
-            cc=payload.cc,
-            bcc=payload.bcc,
-            reply_to=payload.reply_to
-        )
+        return MessageSchema(**params)
 
     async def send_email_async(
         self,
@@ -66,16 +66,16 @@ class BaseEmailService:
         Асинхронная отправка email.
         Подходит для вызова внутри асинхронных функций FastAPI.
         """
-        message = self._prepare_message(payload, template_name, subtype)
+        message = self._prepare_message(payload, subtype)
         try:
             await self.fastmail.send_message(message, template_name=template_name)
-            logger.info(f"Email '{payload.subject}' успешно отправлен получателям: {payload.recipients}")
+            logger.info(f"Email '{payload.subject}' sent to {payload.recipients} successfully")
             return True
         except ConnectionErrors as e:
-            logger.error(f"Ошибка подключения при отправке email '{payload.subject}': {e}", exc_info=True)
+            logger.error(f"Error during sending email '{payload.subject}': {e}", exc_info=True)
             return False
         except Exception as e:
-            logger.critical(f"Непредвиденная ошибка при отправке email '{payload.subject}': {e}", exc_info=True)
+            logger.error(f"SomeThing wend wrong during sending email '{payload.subject}': {e}", exc_info=True)
             return False
 
     def send_email_background(
@@ -84,15 +84,16 @@ class BaseEmailService:
         payload: EmailPayload,
         template_name: Optional[str] = None,
         subtype: MessageType = MessageType.html
-    ) -> None:
+    ):
         """
         Отправка email в фоновом режиме с использованием BackgroundTasks от FastAPI.
         Позволяет немедленно вернуть ответ клиенту, не дожидаясь завершения отправки.
         """
-        message = self._prepare_message(payload, template_name, subtype)
+        message = self._prepare_message(payload, subtype)
         background_tasks.add_task(
             self.fastmail.send_message,
             message,
             template_name=template_name
         )
-        logger.info(f"Задача отправки email '{payload.subject}' добавлена в фоновые задачи FastAPI.")
+        logger.info(f"Send email task '{payload.subject}' added to background tasks FastAPI.")
+        return background_tasks.tasks
