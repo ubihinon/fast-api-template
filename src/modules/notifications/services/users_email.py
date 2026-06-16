@@ -1,45 +1,40 @@
 from typing import Any, Dict, Optional
 from fastapi import BackgroundTasks
-from pydantic import EmailStr, NameEmail
+from pydantic import NameEmail
 
 from .base_email import BaseEmailService, EmailPayload
 from ..settings import EmailSettings
+from ...users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 
 class UsersEmailService(BaseEmailService):
     def __init__(self, settings: EmailSettings):
         super().__init__(settings)
 
-    async def send_login_code_email(self, email: NameEmail, login_code) -> bool:
-        """
-        Асинхронная отправка приветственного письма новому пользователю с использованием HTML-шаблона.
-        """
+    async def send_login_code_email(self, email: NameEmail, login_code: str) -> bool:
         payload = EmailPayload(
             recipients=[email],
-            subject="Добро пожаловать в наш сервис!",
-            body="https://example.com/dashboard"
-            # body={
-            #     "type": "list_type",
-            #     "input_value": {"action_url": "https://example.com/dashboard"},
-            #     "input_type": dict
-            # }
+            subject="Login code",
+            body={'email': email, "code": login_code, 'code_expires_in': LOGIN_CODE_EXPIRES_IN_TIMEDELTA},
         )
-        await self.send_email_async(payload, template_name="welcome.html")
-        return True
+        return await self.send_email_async(payload, template_name="users/login_code.html")
 
-    async def send_welcome_email(self, email: EmailStr) -> bool:
-        """
-        Асинхронная отправка приветственного письма новому пользователю с использованием HTML-шаблона.
-        """
+    async def send_welcome_email(self, email: NameEmail) -> bool:
         payload = EmailPayload(
             recipients=[email],
-            subject="Добро пожаловать в наш сервис!",
-            # body="https://example.com/dashboard"
-            # body={
-            #     "action_url": "https://example.com/dashboard"
-            # }
+            subject="Welcome to our service!",
+            body={'email': email, "action_url": "https://example.com/dashboard"},
         )
-        return await self.send_email_async(payload, template_name="welcome.html")
+        return await self.send_email_async(payload, template_name="users/welcome.html")
+
+    def send_welcome_email_task(self, email: NameEmail) -> bool:
+        payload = EmailPayload(
+            recipients=[email],
+            subject="Welcome to our service!",
+            body={'email': email, "action_url": "https://example.com/dashboard"},
+        )
+        return self.send_email_background(BackgroundTasks(), payload, template_name="users/welcome.html")
+
 
     # def send_password_reset_background(
     #     self,

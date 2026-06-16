@@ -7,7 +7,6 @@ class EmailPayload(BaseModel):
     recipients: List[Union[NameEmail, str]]
     subject: str
     body: Optional[Union[str, Dict[str, Any]]] = None
-    # body: Optional[Union[str, list]] = None
     cc: Optional[List[Union[NameEmail, str]]] = None
     bcc: Optional[List[Union[NameEmail, str]]] = None
     reply_to: Optional[List[Union[NameEmail, str]]] = None
