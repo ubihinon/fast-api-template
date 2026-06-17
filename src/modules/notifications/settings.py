@@ -23,9 +23,9 @@ class EmailSettings(BaseSettings):
     VALIDATE_CERTS: bool = True
 
     TEMPLATE_FOLDER: Optional[Path] = Path(__file__).parent / "templates"
-
-    # Отключение реальной отправки писем для тестирования
-    SUPPRESS_SEND: bool = True
+    # Disables sending emails for testing
+    # SUPPRESS_SEND: bool = True
+    SUPPRESS_SEND: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",

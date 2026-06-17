@@ -68,7 +68,7 @@ class AuthMagicLinkService:
             expires_at=datetime.datetime.now(datetime.UTC) + LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
         logger.info(f"Login code sent to {user.email}")
-        await self.email_service.send_login_code_email(user.email, login_code.code, LOGIN_CODE_EXPIRES_IN_TIMEDELTA)
+        self.email_service.send_login_code_email_task(user.email, login_code.code, LOGIN_CODE_EXPIRES_IN_TIMEDELTA)
 
         return user
 
