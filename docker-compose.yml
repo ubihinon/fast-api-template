@@ -1,54 +1,124 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  db:
-    image: postgres:16
-    container_name: fastapi_db
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+  redis:
+    image: redis:7-alpine
+    container_name: fastapi_celery_redis
     ports:
-      - "5420:5432"
+      - "6379:6379"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
-      timeout: 5s
+      timeout: 3s
       retries: 5
-    networks:
-      - custom
 
-#  api:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    container_name: fastapi_app
-#    restart: unless-stopped
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    env_file:
-#      - .env
-#    ports:
-#      - "8000:8000"
-#    volumes:
-#      - .:/app
-#    command: >
-#      bash -c "
-#      alembic upgrade head &&
-#      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-#      "
-#    networks:
-#      - custom
+  celery_worker:
+    build: .
+    container_name: fastapi_celery_worker
+    command: celery -A app.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - fastapi_network
+
+  celery_beat:
+    build: .
+    container_name: fastapi_celery_beat
+    command: celery -A app.celery_app beat --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - fastapi_network
+
+  fastapi:
+    build: .
+    container_name: fastapi_celery_app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - fastapi_network
 
 volumes:
-  postgres_data:
+  redis_data:
 
 networks:
-  custom:
+  fastapi_network:
     driver: bridge
+
+#version: "3.9"
+#
+#services:
+#  db:
+#    image: postgres:16
+#    container_name: fastapi_db
+#    restart: unless-stopped
+#    env_file:
+#      - .env
+#    environment:
+#      POSTGRES_USER: ${POSTGRES_USER}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#      POSTGRES_DB: ${POSTGRES_DB}
+#    ports:
+#      - "5420:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
+#    networks:
+#      - custom
+#
+##  api:
+##    build:
+##      context: .
+##      dockerfile: Dockerfile
+##    container_name: fastapi_app
+##    restart: unless-stopped
+##    depends_on:
+##      db:
+##        condition: service_healthy
+##    env_file:
+##      - .env
+##    ports:
+##      - "8000:8000"
+##    volumes:
+##      - .:/app
+##    command: >
+##      bash -c "
+##      alembic upgrade head &&
+##      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+##      "
+##    networks:
+##      - custom
+#
+#volumes:
+#  postgres_data:
+#
+#networks:
+#  custom:
+#    driver: bridge

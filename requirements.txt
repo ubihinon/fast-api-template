@@ -60,3 +60,9 @@ pluggy==1.6.0
 pytest==9.1.0
 pytest-asyncio==1.4.0
 aiosqlite==0.22.1
+flower==2.0.1
+humanize==4.15.0
+prometheus-client==0.25.0
+pytz==2026.2
+tornado==6.5.7
+celery==5.6.3
