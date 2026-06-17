@@ -12,8 +12,9 @@ logger = logging.getLogger("email_service")
 
 
 class BaseEmailService:
-    def __init__(self, settings: EmailSettings):
+    def __init__(self, settings: EmailSettings, background_tasks: BackgroundTasks):
         self.settings = settings
+        self.background_tasks = background_tasks
         self.config = self._get_connection_config()
         self.fastmail = FastMail(self.config)
 
@@ -76,7 +77,6 @@ class BaseEmailService:
 
     def send_email_background(
         self,
-        background_tasks: BackgroundTasks,
         payload: EmailPayload,
         template_name: Optional[str] = None,
         subtype: MessageType = MessageType.html
@@ -86,10 +86,10 @@ class BaseEmailService:
         Позволяет немедленно вернуть ответ клиенту, не дожидаясь завершения отправки.
         """
         message = self._prepare_message(payload, subtype)
-        background_tasks.add_task(
+        self.background_tasks.add_task(
             self.fastmail.send_message,
             message,
             template_name=template_name
         )
         logger.info(f"Send email task '{payload.subject}' added to background tasks FastAPI.")
-        return background_tasks.tasks
+        return self.background_tasks.tasks

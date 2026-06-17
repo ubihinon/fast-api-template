@@ -1,11 +1,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 
 from modules.users.api.dependencies import get_auth_magic_link_service
 from modules.users.exceptions import (
-    AuthErrorException, LoginCodeInvalidException, LoginMaxNumberAttemptsException,
+    AccessTokenNotFound, AuthErrorException, LoginCodeInvalidException, LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
 from modules.users.fastapi_users_config import current_active_user
@@ -36,7 +36,6 @@ async def login_with_magic_link(
         "message": "Code sent to your email"
     }
     """
-    # TODO ADD EXCEPTION HANDLING
     try:
         await auth_service.login(request_data.email)
         return LoginResponse(message="Code sent to your email")
@@ -52,9 +51,28 @@ async def login_with_magic_link(
 
 @router.post("/magic/logout")
 async def logout(
-    user: User = Depends(current_active_user),
+    user:  Annotated[User, Depends(current_active_user)],
+    authorization: Annotated[str | None, Header(None)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
 ):
-    return {"message": f"Пользователь {user.email} вышел из системы"}
+    token = None
+    if authorization:
+        try:
+            token = authorization.split(" ")[1]
+        except IndexError:
+            logger.warning("Access token is empty")
+
+    try:
+        await auth_service.logout(user.id, token)
+        return {"message": f"User {user.email} logged out"}
+    except AccessTokenNotFound as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.exception(f"Exception: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong",
+        )
 
 
 @router.post("/magic/verify-login")

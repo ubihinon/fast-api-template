@@ -8,8 +8,8 @@ from ..settings import EmailSettings
 # TODO CREATE EMAIL STATUS MODEL
 
 class UsersEmailService(BaseEmailService):
-    def __init__(self, settings: EmailSettings):
-        super().__init__(settings)
+    def __init__(self, settings: EmailSettings, background_tasks: BackgroundTasks):
+        super().__init__(settings, background_tasks)
 
     async def send_login_code_email(self, email: str, login_code: str, expires_in: datetime.timedelta) -> bool:
         payload = EmailPayload(
@@ -33,7 +33,7 @@ class UsersEmailService(BaseEmailService):
             subject="Login code",
             body={'email': email, "code": login_code, 'code_expires_in': expires_in},
         )
-        return self.send_email_background(BackgroundTasks(), payload, template_name="users/login_code.html")
+        return self.send_email_background(payload, template_name="users/login_code.html")
 
     def send_welcome_email_task(self, email: str) -> bool:
         payload = EmailPayload(
@@ -41,4 +41,4 @@ class UsersEmailService(BaseEmailService):
             subject="Welcome to our service!",
             body={'email': email, "action_url": "https://example.com/dashboard"},
         )
-        return self.send_email_background(BackgroundTasks(), payload, template_name="users/welcome.html")
+        return self.send_email_background(payload, template_name="users/welcome.html")

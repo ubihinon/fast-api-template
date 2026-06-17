@@ -7,7 +7,7 @@ from fastapi_users import exceptions
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.exceptions import (
-    AuthErrorException, LoginCodeInvalidException,
+    AccessTokenNotFound, AuthErrorException, LoginCodeInvalidException,
     LoginCodeNotFoundException, LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
@@ -119,6 +119,13 @@ class AuthMagicLinkService:
         logger.info(f"✓ Access token: {access_token.token[:10]}...")
 
         return access_token
+
+    async def logout(self, user_id: int, token: str | None = None):
+        if token:
+            if not await self.access_token_repository.deactivate_token(user_id, token):
+                raise AccessTokenNotFound("Token not found")
+        else:
+            await self.access_token_repository.deactivate_all_tokens(user_id)
 
     async def get_user(self, email: str):
         user = await self.repository.get_by_email(email)
