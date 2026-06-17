@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     # Celery settings
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND_URL: str = "redis://localhost:6379/1"
+    CELERY_ALWAYS_EAGER: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",

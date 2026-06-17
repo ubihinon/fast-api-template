@@ -21,6 +21,7 @@ celery_app.conf.update(
     task_track_started=True,
     task_time_limit=30 * 60,  # 30 minutes hard limit
     task_soft_time_limit=25 * 60,  # 25 minutes soft limit
+    task_always_eager=settings.CELERY_ALWAYS_EAGER
 )
 
 # Auto-discover tasks from all registered apps
