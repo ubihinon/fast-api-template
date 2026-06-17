@@ -6,7 +6,7 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
-from core import settings
+from core.settings import settings
 
 from core.models.base import Base
 from modules.users.models import User, LoginCode, AccessToken  # noqa: F401

@@ -1,12 +1,12 @@
 import logging
 
 from environs import env
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env.read_env()
 
-ENABLE_ADMIN = True
+# ENABLE_ADMIN = True
 
-DEBUG = True
 
 DATABASE_URL = env("DATABASE_URL", default="postgresql+asyncpg://postgres:postgres@0.0.0.0:5432/postgres")
 SYNC_DATABASE_URL = env("SYNC_DATABASE_URL", default="postgresql+psycopg2://postgres:postgres@0.0.0.0:5432/postgres")
@@ -27,3 +27,29 @@ logging.basicConfig(
         logging.StreamHandler(),
     ]
 )
+
+
+class Settings(BaseSettings):
+    APP_NAME: str = "FastAPI Template"
+    APP_VERSION: str = "1.0.0"
+
+    ENABLE_ADMIN = True
+    DEBUG: bool = False
+
+    # Server settings
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+
+    # Celery settings
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND_URL: str = "redis://localhost:6379/1"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=True
+    )
+
+
+settings = Settings()
