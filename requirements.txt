@@ -66,3 +66,4 @@ prometheus-client==0.25.0
 pytz==2026.2
 tornado==6.5.7
 celery==5.6.3
+fastapi-mail==1.6.4
