@@ -5,8 +5,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env.read_env()
 
-# ENABLE_ADMIN = True
-
 
 DATABASE_URL = env("DATABASE_URL", default="postgresql+asyncpg://postgres:postgres@0.0.0.0:5432/postgres")
 SYNC_DATABASE_URL = env("SYNC_DATABASE_URL", default="postgresql+psycopg2://postgres:postgres@0.0.0.0:5432/postgres")
@@ -33,7 +31,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "FastAPI Template"
     APP_VERSION: str = "1.0.0"
 
-    ENABLE_ADMIN = True
+    ENABLE_ADMIN: bool = True
     DEBUG: bool = False
 
     # Server settings

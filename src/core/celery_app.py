@@ -1,6 +1,4 @@
 from celery import Celery
-from celery.schedules import crontab
-from datetime import timedelta
 
 from core.celery_beat_schedule import CELERY_BEAT_SCHEDULE
 from core.settings import settings
@@ -25,7 +23,7 @@ celery_app.conf.update(
 )
 
 # Auto-discover tasks from all registered apps
-celery_app.autodiscover_tasks(["app.tasks"])
+celery_app.autodiscover_tasks(["core.tasks"])
 
 # Configure Celery Beat schedule for periodic tasks
 
