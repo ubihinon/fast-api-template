@@ -52,8 +52,8 @@ async def login_with_magic_link(
 @router.post("/magic/logout")
 async def logout(
     user:  Annotated[User, Depends(current_active_user)],
-    authorization: Annotated[str | None, Header(None)],
     auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+    authorization: Annotated[str | None, Header()] = None,
 ):
     token = None
     if authorization:
