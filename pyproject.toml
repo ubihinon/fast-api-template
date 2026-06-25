@@ -8,6 +8,7 @@ dependencies = [
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
     "fastapi>=0.138.0",
+    "fastapi-mail>=1.6.5",
     "fastapi-users>=15.0.5",
     "fastapi-users-db-sqlalchemy>=7.0.0",
     "flower>=2.0.1",
