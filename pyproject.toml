@@ -8,10 +8,11 @@ dependencies = [
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
     "fastapi>=0.138.0",
+    "fastapi-users>=15.0.5",
     "flower>=2.0.1",
+    "psycopg2-binary>=2.9.12",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.0.0",
-    "pytest-asyncio>=1.4.0",
     "redis>=8.0.1",
     "sqlalchemy>=2.0.51",
     "starlette-admin>=0.16.1",
@@ -38,4 +39,5 @@ omit = [
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
 ]
