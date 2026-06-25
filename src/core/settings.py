@@ -1,13 +1,20 @@
 import logging
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pythonjsonlogger import json
 from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+
+logHandler = logging.StreamHandler()
+formatter = json.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s')
+logHandler.setFormatter(formatter)
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
+        logHandler
     ]
 )
 
