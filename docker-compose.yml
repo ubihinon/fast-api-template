@@ -39,6 +39,7 @@ services:
     command: bash -c "cd /app && celery -A core.celery_app worker --loglevel=info"
     volumes:
       - .:/app
+      - /app/.venv
     environment:
       - PYTHONPATH=/app/src
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -55,6 +56,7 @@ services:
     command: bash -c "cd /app && celery -A core.celery_app beat --loglevel=info"
     volumes:
       - .:/app
+      - /app/.venv
     environment:
       - PYTHONPATH=/app/src
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -68,11 +70,12 @@ services:
   fastapi:
     build: .
     container_name: fastapi_app
-    command: uvicorn core.main:app --host 0.0.0.0 --port 8000 --reload
+    command: bash -c "cd /app/.venv/bin/ && uvicorn core.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
     volumes:
       - .:/app
+      - /app/.venv
     environment:
       - PYTHONPATH=/app/src
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -97,6 +100,7 @@ services:
       - "5555:5555"
     volumes:
       - .:/app
+      - /app/.venv
     environment:
       - PYTHONPATH=/app/src
       - CELERY_BROKER_URL=redis://redis:6379/0
