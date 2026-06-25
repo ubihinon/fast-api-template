@@ -13,6 +13,6 @@ RUN uv sync --locked --no-dev
 COPY . .
 
 ENV PYTHONPATH=/app/src
-ENV PATH=/app/bin:$PATH
+ENV PATH=/app/.venv/bin:$PATH
 
-CMD ["uvicorn", "core.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn core.main:app --host 0.0.0.0 --port 8000"]
