@@ -1,7 +1,7 @@
 import logging
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,7 +32,6 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # Celery settings
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND_URL: str = "redis://localhost:6379/1"
     CELERY_ALWAYS_EAGER: bool = False
@@ -44,5 +43,10 @@ class Settings(BaseSettings):
         case_sensitive=True
     )
 
+    SENTRY_DSN: str = None
+    SENTRY_INTEGRATIONS: list = [FastApiIntegration()]
+    SENTRY_TRACES_SAMPLE_RATE: float = 1.0
+    SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = 1.0
+    ENVIRONMENT: str = "development"
 
 settings = Settings()
