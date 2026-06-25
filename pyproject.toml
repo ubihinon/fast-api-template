@@ -9,6 +9,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "fastapi>=0.138.0",
     "fastapi-users>=15.0.5",
+    "fastapi-users-db-sqlalchemy>=7.0.0",
     "flower>=2.0.1",
     "psycopg2-binary>=2.9.12",
     "pydantic>=2.13.4",
