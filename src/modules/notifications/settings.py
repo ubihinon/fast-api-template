@@ -3,15 +3,12 @@ from typing import Optional
 from pydantic import EmailStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from environs import env
-
-env.read_env()
 
 
 class EmailSettings(BaseSettings):
-    MAIL_USERNAME: str = env("MAIL_USERNAME")
-    MAIL_PASSWORD: str = env("MAIL_PASSWORD")
-    MAIL_FROM: EmailStr = env("MAIL_FROM")
+    MAIL_USERNAME: str = "<MAIL_USERNAME>"
+    MAIL_PASSWORD: str = "<MAIL_PASSWORD>"
+    MAIL_FROM: EmailStr = "<MAIL_FROM>"
     MAIL_PORT: int = 587
     MAIL_SERVER: str = "smtp.gmail.com"
     MAIL_FROM_NAME: str = "FastAPI Application"
