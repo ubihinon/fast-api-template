@@ -1,19 +1,5 @@
 version: '3.8'
 
-x-logging: &default-logging
-  driver: loki
-  options:
-    loki-url: 'http://loki:3100/loki/api/v1/push'
-    loki-pipeline-stages: |
-      - multiline:
-          firstline: '^\d{4}-\d{2}-\d{2}'
-          max_wait_time: 3s
-      - json:
-          expressions:
-            level: levelname
-            message: message
-
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -96,15 +82,11 @@ services:
       - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_db
       - SYNC_DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/fastapi_db
-      - LOKI_URL=http://loki:3100
     depends_on:
       redis:
         condition: service_healthy
       postgres:
         condition: service_healthy
-      loki:
-        condition: service_healthy
-      logging: *default-logging
     networks:
       - fastapi_network
 
@@ -129,36 +111,9 @@ services:
     networks:
       - fastapi_network
 
-  loki:
-    image: grafana/loki:3.0.0
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - ./loki-config.yaml:/etc/loki/local-config.yaml
-      - loki_data:/tmp/loki
-
-  grafana:
-    image: grafana/grafana:10.4.0
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      # Автоматическая настройка источника данных Loki
-      - GF_DATASOURCES_DEFAULT_URL=http://loki:3100
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
-    depends_on:
-      loki:
-        condition: service_healthy
-
 volumes:
   postgres_data:
   redis_data:
-  loki_data:
-  grafana_data:
 
 networks:
   fastapi_network:
