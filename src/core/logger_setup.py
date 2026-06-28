@@ -23,13 +23,14 @@ def setup_logging():
         password=settings.GRAFANA_API_PASSWORD,
         job_name="fastapi-app"
     )
+    grafana_handler.setLevel(settings.LOG_LEVEL)
     grafana_handler.setFormatter(JsonFormatter())
 
     # Handler для консоли (для локальной разработки)
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(settings.LOG_LEVEL)
     console_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     console_handler.setFormatter(console_formatter)
 
@@ -143,11 +144,11 @@ class JsonFormatter(logging.Formatter):
         if record.exc_info:
             log_data["exception"] = self.formatException(record.exc_info)
 
-        if hasattr(record, 'trace_id'):
-            log_data['trace_id'] = record.trace_id
-        if hasattr(record, 'user_id'):
-            log_data['user_id'] = record.user_id
-        if hasattr(record, 'request_id'):
-            log_data['request_id'] = record.request_id
+        if hasattr(record, "trace_id"):
+            log_data["trace_id"] = record.trace_id
+        if hasattr(record, "user_id"):
+            log_data["user_id"] = record.user_id
+        if hasattr(record, "request_id"):
+            log_data["request_id"] = record.request_id
 
         return json.dumps(log_data, default=str, ensure_ascii=False)

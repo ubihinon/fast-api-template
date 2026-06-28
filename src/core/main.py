@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 import sentry_sdk
 
-from core.prafana_loki_handler import setup_logging
+from core.logger_setup import setup_logging
 from core.settings import settings
 
 sys.path.insert(0, str(__file__).rsplit('/', 2)[0])

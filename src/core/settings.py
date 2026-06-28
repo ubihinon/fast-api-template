@@ -1,30 +1,7 @@
-import base64
-import datetime
-import logging
-
-import requests
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pythonjsonlogger import json
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-
-import logging
-import logging.config
 import os
-from logging.handlers import QueueHandler, QueueListener
-from queue import Queue
 
-# logHandler = logging.StreamHandler()
-# formatter = json.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s')
-# logHandler.setFormatter(formatter)
-#
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#     handlers=[
-#         logging.StreamHandler(),
-#         logHandler
-#     ]
-# )
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 
 class Settings(BaseSettings):
@@ -64,8 +41,9 @@ class Settings(BaseSettings):
     SENTRY_TRACES_SAMPLE_RATE: float = 1.0
     SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = 1.0
 
-    GRAFANA_LOKI_URL: str = ''
-    GRAFANA_API_USERNAME: str = ''
-    GRAFANA_API_PASSWORD: str = ''
+    GRAFANA_LOKI_URL: str = ""
+    GRAFANA_API_USERNAME: str = ""
+    GRAFANA_API_PASSWORD: str = ""
+
 
 settings = Settings()
