@@ -1,28 +1,37 @@
+import base64
+import datetime
 import logging
 
+import requests
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pythonjsonlogger import json
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
+import logging
+import logging.config
+import os
+from logging.handlers import QueueHandler, QueueListener
+from queue import Queue
 
-logHandler = logging.StreamHandler()
-formatter = json.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s')
-logHandler.setFormatter(formatter)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logHandler
-    ]
-)
+# logHandler = logging.StreamHandler()
+# formatter = json.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s')
+# logHandler.setFormatter(formatter)
+#
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.StreamHandler(),
+#         logHandler
+#     ]
+# )
 
 
 class Settings(BaseSettings):
     APP_NAME: str = "FastAPI Template"
     APP_VERSION: str = "1.0.0"
-
+    ENVIRONMENT: str = "development"
+    LOG_LEVEL: str = "error"
     ENABLE_ADMIN: bool = True
     DEBUG: bool = False
 
@@ -44,16 +53,19 @@ class Settings(BaseSettings):
     CELERY_ALWAYS_EAGER: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=os.getenv("ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=True
     )
 
-    SENTRY_DSN: str = None
+    SENTRY_DSN: str | None = None
     SENTRY_INTEGRATIONS: list = [FastApiIntegration()]
     SENTRY_TRACES_SAMPLE_RATE: float = 1.0
     SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = 1.0
-    ENVIRONMENT: str = "development"
+
+    GRAFANA_LOKI_URL: str = ''
+    GRAFANA_API_USERNAME: str = ''
+    GRAFANA_API_PASSWORD: str = ''
 
 settings = Settings()

@@ -44,7 +44,7 @@ default_is_superuser = True
 default_is_verified = True
 
 
-@cli_app.command(name='create-superuser')
+@cli_app.command(name="create-superuser")
 def create_superuser(
     email: str = default_email,
     password: str = default_password,

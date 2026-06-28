@@ -1,19 +1,19 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
     image: postgres:16-alpine
     container_name: fastapi_postgres
     environment:
-      POSTGRES_DB: fastapi_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -32,7 +32,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
+# docker-compose down -v && docker-compose build --no-cache && docker-compose up -d && docker-compose logs -f fastapi
   celery_worker:
     build: .
     container_name: fastapi_celery_worker
@@ -41,9 +41,9 @@ services:
       - .:/app
       - /app/.venv
     environment:
-      - PYTHONPATH=/app/src
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
+      - PYTHONPATH=${PYTHONPATH:-/app/src}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND_URL=${CELERY_RESULT_BACKEND_URL:-redis://redis:6379/1}
     depends_on:
       redis:
         condition: service_healthy
@@ -58,9 +58,9 @@ services:
       - .:/app
       - /app/.venv
     environment:
-      - PYTHONPATH=/app/src
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
+      - PYTHONPATH=${PYTHONPATH:-/app/src}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND_URL=${CELERY_RESULT_BACKEND_URL:-redis://redis:6379/1}
     depends_on:
       redis:
         condition: service_healthy
@@ -77,11 +77,25 @@ services:
       - .:/app
       - /app/.venv
     environment:
-      - PYTHONPATH=/app/src
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_db
-      - SYNC_DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/fastapi_db
+      - ENV_FILE=.env
+      - PYTHONPATH=${PYTHONPATH:-/app/src}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND_URL=${CELERY_RESULT_BACKEND_URL:-redis://redis:6379/1}
+      - DATABASE_URL=${DATABASE_URL}
+      - SYNC_DATABASE_URL=${SYNC_DATABASE_URL}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM=${MAIL_FROM}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - GRAFANA_LOKI_URL=${GRAFANA_LOKI_URL}
+      - GRAFANA_API_USERNAME=${GRAFANA_API_USERNAME}
+      - GRAFANA_API_PASSWORD=${GRAFANA_API_PASSWORD}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DEBUG=${DEBUG:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENABLE_ADMIN=${ENABLE_ADMIN:-true}
+
     depends_on:
       redis:
         condition: service_healthy
@@ -102,9 +116,9 @@ services:
       - .:/app
       - /app/.venv
     environment:
-      - PYTHONPATH=/app/src
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND_URL=redis://redis:6379/1
+      - PYTHONPATH=${PYTHONPATH:-/app/src}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND_URL=${CELERY_RESULT_BACKEND_URL:-redis://redis:6379/1}
     depends_on:
       redis:
         condition: service_healthy

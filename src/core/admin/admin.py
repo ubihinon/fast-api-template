@@ -5,7 +5,7 @@ from modules.users.models import AccessToken, LoginCode, User
 
 
 def setup_admin(app):
-    admin = Admin(engine, title='FastAPI Template Admin')
+    admin = Admin(engine, title="FastAPI Template Admin")
     admin.mount_to(app)
 
     admin.add_view(ModelView(User))

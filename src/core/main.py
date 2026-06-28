@@ -1,7 +1,10 @@
+import logging
 import sys
+from contextlib import asynccontextmanager
 
 import sentry_sdk
 
+from core.prafana_loki_handler import setup_logging
 from core.settings import settings
 
 sys.path.insert(0, str(__file__).rsplit('/', 2)[0])
@@ -10,16 +13,38 @@ from fastapi import FastAPI
 from core import admin
 from modules.users.api.v1 import router as users_router
 
-sentry_sdk.init(
-    dsn=settings.SENTRY_DSN,
-    environment=settings.ENVIRONMENT,
-    integrations=settings.SENTRY_INTEGRATIONS,
-    traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
-    profile_session_sample_rate=settings.SENTRY_PROFILE_SESSION_SAMPLE_RATE,
-    profile_lifecycle="trace",
-)
+logger = logging.getLogger(__name__)
 
-app = FastAPI()
+# sentry_sdk.init(
+#     dsn=settings.SENTRY_DSN,
+#     environment=settings.ENVIRONMENT,
+#     integrations=settings.SENTRY_INTEGRATIONS,
+#     traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+#     profile_session_sample_rate=settings.SENTRY_PROFILE_SESSION_SAMPLE_RATE,
+#     profile_lifecycle="trace",
+# )
+
+listener = setup_logging()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("🚀 Starting FastAPI application...")
+
+    if settings.GRAFANA_API_USERNAME is None or settings.GRAFANA_API_PASSWORD is None:
+        logger.warning("GRAFANA_API_USERNAME or GRAFANA_API_PASSWORD not set!")
+        logger.warning("Logs won't be sent in Grafana Loki")
+    else:
+        logger.info(f"✓ Grafana Loki URL: {settings.GRAFANA_LOKI_URL}")
+
+    yield
+
+    logger.info("🛑 Shutting down FastAPI application...")
+
+    listener.stop()
+
+
+app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
 
 app.include_router(users_router)
 
