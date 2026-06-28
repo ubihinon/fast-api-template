@@ -13,21 +13,6 @@ from core.settings import settings
 
 logger = logging.getLogger(__name__)
 
-logging_config = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "loggers": {
-        "urllib3": {
-            "level": "WARNING",
-        },
-        "urllib3.connectionpool": {
-            "level": "WARNING",
-        },
-    },
-}
-
-logging.config.dictConfig(logging_config)
-
 
 def setup_logging():
     log_queue = Queue(-1)
@@ -61,6 +46,21 @@ def setup_logging():
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
     root_logger.addHandler(queue_handler)
+
+    logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "loggers": {
+            "urllib3": {
+                "level": "WARNING",
+            },
+            "urllib3.connectionpool": {
+                "level": "WARNING",
+            },
+        },
+    }
+
+    logging.config.dictConfig(logging_config)
 
     return listener
 
