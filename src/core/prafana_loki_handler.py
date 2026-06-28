@@ -1,6 +1,7 @@
 import base64
 import datetime
 import json
+import logging
 import logging.config
 from logging.handlers import QueueHandler, QueueListener
 from queue import Queue
@@ -9,22 +10,8 @@ import requests
 
 from core.settings import settings
 
-logger = logging.getLogger(__name__)
 
-# logHandler = logging.StreamHandler()
-# formatter = json.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s')
-# logHandler.setFormatter(formatter)
-#
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#     handlers=[
-#         logging.StreamHandler(),
-#         logHandler
-#     ]
-# )
-import logging
-import logging.config
+logger = logging.getLogger(__name__)
 
 logging_config = {
     "version": 1,
