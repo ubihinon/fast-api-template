@@ -38,6 +38,6 @@ class User(IdIntPkMixin, CreatedUpdatedMixin, SQLAlchemyBaseUserTable[UserIdType
     #     Index('ix_user_email_lower', func.lower(email), unique=True),
     # )
 
-    @validates('email')
+    @validates("email")
     def validate_email(self, key, value):
         return value.strip().lower() if value else value

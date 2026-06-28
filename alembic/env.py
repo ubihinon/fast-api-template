@@ -8,11 +8,17 @@ from sqlalchemy import pool
 
 from alembic import context
 
+from core.settings import settings
+
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "src"))
 
 
 from core.models.base import mapper_registry  # noqa: E402
+
+
+if settings.SYNC_DATABASE_URL is not None:
+    context.config.set_main_option("sqlalchemy.url", settings.SYNC_DATABASE_URL)
 
 
 modules_to_import = [

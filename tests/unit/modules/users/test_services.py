@@ -31,7 +31,7 @@ class TestVerifyLoginCodeService:
             LoginAttemptRepository(test_session),
             AccessTokenRepository(test_session),
             UsersEmailService(EmailSettings()),
-            '127.0.0.1',
+            "127.0.0.1",
         )
         access_token = await service.verify_login_code(user.email, login_code.code)
 
