@@ -1,7 +1,6 @@
 import base64
 import datetime
 import json
-import logging
 import logging.config
 from logging.handlers import QueueHandler, QueueListener
 from queue import Queue
@@ -9,7 +8,6 @@ from queue import Queue
 import requests
 
 from core.settings import settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +23,24 @@ logger = logging.getLogger(__name__)
 #         logHandler
 #     ]
 # )
+import logging
+import logging.config
+
+logging_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "loggers": {
+        "urllib3": {
+            "level": "WARNING",
+        },
+        "urllib3.connectionpool": {
+            "level": "WARNING",
+        },
+    },
+}
+
+logging.config.dictConfig(logging_config)
+
 
 def setup_logging():
     log_queue = Queue(-1)

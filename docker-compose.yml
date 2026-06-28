@@ -93,7 +93,7 @@ services:
       - GRAFANA_API_PASSWORD=${GRAFANA_API_PASSWORD}
       - ENVIRONMENT=${ENVIRONMENT}
       - DEBUG=${DEBUG:-true}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - ENABLE_ADMIN=${ENABLE_ADMIN:-true}
 
     depends_on:
