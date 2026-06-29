@@ -110,17 +110,17 @@ def createsuperuser(
     db = get_db()
 
     admin_user = UserAdmin(
-        username="admin",
-        email="admin@example.com",
-        password_hash=hash_password("adminadmin"),
-        full_name="Administrator",
+        username=username,
+        email=email,
+        password_hash=hash_password(password),
+        full_name=username,
         is_active=True,
         is_superuser=True,
     )
     db.add(admin_user)
 
-    db.commit()
-    db.refresh(admin_user)
+    db.flush()
+    # db.refresh(admin_user)
 
     # Проверка существования пользователя
     # existing_user = db.query(User).filter(User.username == username).first()
