@@ -1,1 +1,1 @@
-from .admin import setup_admin
+from .setup import setup_admin

@@ -22,6 +22,7 @@ if settings.SYNC_DATABASE_URL is not None:
 
 
 modules_to_import = [
+    "core.admin.models",
     "modules.users.models",
 ]
 
