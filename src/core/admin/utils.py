@@ -30,21 +30,16 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    """
-    Проверка пароля против хеша
-    """
     try:
         salt, stored_hash = password_hash.split("$")
-        
-        # Хешируем введенный пароль с той же солью
+
         password_check = hashlib.pbkdf2_hmac(
             "sha256",
             password.encode("utf-8"),
             salt.encode("utf-8"),
             100000
         )
-        
-        # Сравниваем хеши
+
         return password_check.hex() == stored_hash
     except (ValueError, AttributeError):
         return False
