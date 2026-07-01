@@ -1,45 +1,23 @@
-import hashlib
-import secrets
+import bcrypt
 
 from core.settings import settings
 
 
 def hash_password(password: str) -> str:
-    """
-    Хеширование пароля с солью
-    
-    ВНИМАНИЕ: В production используйте bcrypt или argon2!
-    Это простой пример для демонстрации.
-    """
     if len(password) < settings.ADMIN_PASSWORD_MIN_LENGTH:
-        raise ValueError(f"Пароль должен быть не менее {settings.ADMIN_PASSWORD_MIN_LENGTH} символов")
-    
-    # Генерируем соль
-    salt = secrets.token_hex(16)
-    
-    # Хешируем пароль с солью
-    password_hash = hashlib.pbkdf2_hmac(
-        "sha256",
-        password.encode("utf-8"),
-        salt.encode("utf-8"),
-        100000  # количество итераций
-    )
-    
-    # Возвращаем соль + хеш в формате "salt$hash"
-    return f"{salt}${password_hash.hex()}"
+        raise ValueError(f"Password must be at least {settings.ADMIN_PASSWORD_MIN_LENGTH} symbols")
+
+    password_bytes = password.encode("utf-8")
+
+    salt = bcrypt.gensalt(rounds=12)
+
+    hashed = bcrypt.hashpw(password_bytes, salt)
+
+    return hashed.decode("utf-8")
 
 
-def verify_password(password: str, password_hash: str) -> bool:
-    try:
-        salt, stored_hash = password_hash.split("$")
+def verify_password(password: str, hashed_password: str) -> bool:
+    password_bytes = password.encode("utf-8")
+    hashed_bytes = hashed_password.encode("utf-8")
 
-        password_check = hashlib.pbkdf2_hmac(
-            "sha256",
-            password.encode("utf-8"),
-            salt.encode("utf-8"),
-            100000
-        )
-
-        return password_check.hex() == stored_hash
-    except (ValueError, AttributeError):
-        return False
+    return bcrypt.checkpw(password_bytes, hashed_bytes)

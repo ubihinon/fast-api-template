@@ -5,6 +5,8 @@ from pathlib import Path
 import typer
 from sqlalchemy import select
 
+from core.settings import settings
+
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -46,8 +48,10 @@ async def _createsuperuser(username: str, email: str, password: str, password_co
                 typer.echo("❌ Passwords do not match!", err=True)
                 raise typer.Exit(code=1)
 
-            if len(password) < 8:
-                typer.echo("❌ Password must contain at least 8 symbols!", err=True)
+            if len(password) < settings.ADMIN_PASSWORD_MIN_LENGTH:
+                typer.echo(
+                    f"❌ Password must contain at least {settings.ADMIN_PASSWORD_MIN_LENGTH} symbols!", err=True
+                )
                 raise typer.Exit(code=1)
 
             admin_user = UserAdmin(
