@@ -16,7 +16,7 @@ class LoginCode(Base):
     user_id: Mapped[UserIdType] = mapped_column(
         Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False
     )
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False,
     )
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=False)

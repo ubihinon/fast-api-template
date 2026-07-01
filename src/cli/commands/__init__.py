@@ -1,8 +1,3 @@
-import typer
+from .admin import admin_app
 
-cli_app = typer.Typer()
-
-__all__ = ["cli_app"]
-
-
-from .create_superuser import create_superuser
+__all__ = ["admin_app"]

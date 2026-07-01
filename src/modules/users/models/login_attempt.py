@@ -18,7 +18,7 @@ class LoginAttempt(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     code_entered: Mapped[str] = mapped_column(String(6), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False,
     )
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)

@@ -1,5 +1,6 @@
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette_admin import DropDown
 from starlette_admin.contrib.sqla import Admin, ModelView
 
 from core.admin.auth_provider import DatabaseAuthProvider
@@ -12,7 +13,7 @@ from modules.users.models import AccessToken, LoginAttempt, LoginCode, User
 def setup_admin(app):
     admin = Admin(
         engine,
-        title="FastAPI Template Admin",
+        title=f"{settings.APP_NAME} Admin",
         auth_provider=DatabaseAuthProvider(),
         middlewares=[
             Middleware(SessionMiddleware, secret_key=settings.SECRET_KEY),
@@ -20,10 +21,26 @@ def setup_admin(app):
     )
     admin.mount_to(app)
 
-    admin.add_view(ModelView(UserAdmin))
-    admin.add_view(ModelView(User))
-    admin.add_view(ModelView(AccessToken))
-    admin.add_view(ModelView(LoginCode))
-    admin.add_view(ModelView(LoginAttempt))
+
+    admin.add_view(
+        DropDown(
+            "Users",
+            views=[
+                ModelView(User),
+                ModelView(AccessToken),
+                ModelView(LoginCode),
+                ModelView(LoginAttempt),
+            ],
+        )
+    )
+
+    admin.add_view(
+        DropDown(
+            "Admin",
+            views=[
+                ModelView(UserAdmin),
+            ],
+        )
+    )
 
     return admin

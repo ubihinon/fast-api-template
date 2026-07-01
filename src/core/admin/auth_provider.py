@@ -1,6 +1,3 @@
-"""
-Реализация AuthProvider для Starlette Admin
-"""
 import datetime
 import logging
 from typing import Optional
@@ -55,9 +52,8 @@ class DatabaseAuthProvider(AuthProvider):
                     raise LoginFailed("Invalid username or password")
 
                 user.last_login = datetime.datetime.now(datetime.UTC)
-                session.commit()
+                await session.commit()
 
-                # 6. Сохранение пользователя в сессии
                 request.session.update({
                     "user_id": user.id,
                     "username": user.username,
@@ -70,9 +66,6 @@ class DatabaseAuthProvider(AuthProvider):
                 logger.error(f"[Admin] Login error: {e}")
                 await session.rollback()
                 raise
-            # finally:
-            #     pass
-                # db.close()
 
     async def is_authenticated(self, request: Request) -> bool:
         user_id = request.session.get("user_id")
@@ -105,39 +98,21 @@ class DatabaseAuthProvider(AuthProvider):
                 logger.error(f"[Admin] Authentication error: {e}")
                 await session.rollback()
                 raise
-            # finally:
-            #     db.close()
+
+    async def logout(self, request: Request, response: Response) -> Response:
+        request.session.clear()
+        return response
 
     def get_admin_user(self, request: Request) -> Optional[AdminUser]:
-        """
-        Возвращает информацию о пользователе для отображения в интерфейсе
-        """
-        user = getattr(request.state, "user", None)
+        user = getattr(request.state, "user", {})
 
         if not user:
             return None
 
         return AdminUser(
             username=user.get("username", "Unknown"),
-            photo_url=None,  # Можно добавить URL аватара если нужно
+            photo_url=None,
         )
 
     def get_admin_config(self, request: Request) -> Optional[AdminConfig]:
-        """
-        Возвращает конфигурацию админки в зависимости от пользователя
-        """
-        user = getattr(request.state, "user", None)
-
-        if not user:
-            return None
-
-        # Можно динамически менять заголовок и логотип в зависимости от пользователя
-        custom_title = f"Админка - {user.get('full_name', user.get('username'))}"
-
-        return AdminConfig(
-            app_title=custom_title,
-        )
-
-    async def logout(self, request: Request, response: Response) -> Response:
-        request.session.clear()
-        return response
+        return None
