@@ -1,6 +1,7 @@
 from modules.users.repositories.user import UserRepository
 
-
+# TODO FIX
+# TODO ADD LINTER
 class UserService:
     def __init__(self, repository: UserRepository):
         self.repository = repository
