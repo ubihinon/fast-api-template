@@ -51,5 +51,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = []
     CORS_ALLOW_CREDENTIALS: bool = True
 
+    RATE_LIMIT_LOGIN: str = "10/minute"
+    RATE_LIMIT_VERIFY: str = "10/minute"
+
 
 settings = Settings()

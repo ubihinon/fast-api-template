@@ -19,6 +19,7 @@ dependencies = [
     "redis>=8.0.1",
     "requests>=2.34.2",
     "sentry-sdk[fastapi]>=2.63.0",
+    "slowapi>=0.1.10",
     "sqlalchemy>=2.0.51",
     "starlette-admin>=0.16.1",
     "typer>=0.26.8",
