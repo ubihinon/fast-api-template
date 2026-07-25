@@ -2,7 +2,11 @@ import logging
 from contextlib import asynccontextmanager
 
 import sentry_sdk
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
+from core.limiter import limiter
 from core.logger_setup import setup_logging
 from core.settings import settings
 
@@ -45,6 +49,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+app.add_middleware(SlowAPIMiddleware)  # type: ignore[arg-type]
 app.add_middleware(
     CORSMiddleware,  # type: ignore[arg-type]
     allow_origins=settings.CORS_ORIGINS,

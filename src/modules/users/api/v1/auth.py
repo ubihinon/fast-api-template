@@ -1,8 +1,10 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
+from core.limiter import limiter
+from core.settings import settings
 from modules.users.api.dependencies import get_auth_magic_link_service
 from modules.users.exceptions import (
     AccessTokenNotFound, AuthErrorException, LoginCodeInvalidException, LoginMaxNumberAttemptsException,
@@ -20,7 +22,9 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/magic/login", response_model=LoginResponse)
+@limiter.limit(settings.RATE_LIMIT_LOGIN)
 async def login_with_magic_link(
+    request: Request,
     request_data: LoginWithEmailRequestSchema,
     auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)]
 ) -> LoginResponse:
@@ -76,7 +80,9 @@ async def logout(
 
 
 @router.post("/magic/verify-login")
+@limiter.limit(settings.RATE_LIMIT_VERIFY)
 async def verify_login(
+    request: Request,
     request_data: VerifyLoginRequestSchema,
     auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)]
 ) -> LoginAccessTokenResponseSchema:
