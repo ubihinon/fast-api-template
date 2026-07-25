@@ -1,11 +1,9 @@
 import datetime
 
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
 from modules.users.models import LoginAttempt
-from modules.users.dtos.auth import LoginAttemptReadSchema
 from modules.users.repositories.base import BaseRepository
 from modules.users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
@@ -13,7 +11,7 @@ from modules.users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 class LoginAttemptRepository(BaseRepository):
     async def create(
         self, user_id: UserIdType, email: str, code_entered: str, is_correct: bool, ip_address: str
-    ) -> LoginAttemptReadSchema:
+    ) -> LoginAttempt:
         login_attempt = LoginAttempt(
             user_id=user_id,
             email=email,
@@ -23,7 +21,7 @@ class LoginAttemptRepository(BaseRepository):
         )
         self.session.add(login_attempt)
         await self.session.flush()
-        return LoginAttemptReadSchema.model_validate(login_attempt)
+        return login_attempt
 
     async def get_failed_attempts_count(self, code: str, user_id: UserIdType, ip_address: str) -> int:
         query = select(func.count()).select_from(LoginAttempt).where(
