@@ -9,11 +9,11 @@ from core.models.types import UserIdType
 
 class LoginAttempt(Base):
     __tablename__ = "login_attempt"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {"schema": "users", "extend_existing": True}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[UserIdType] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False
+        Integer, ForeignKey("users.user.id", ondelete="cascade"), nullable=False
     )
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     code_entered: Mapped[str] = mapped_column(String(6), nullable=False)
