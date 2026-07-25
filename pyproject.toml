@@ -43,8 +43,21 @@ omit = [
     "*/__main__.py",
 ]
 
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "modules", "cli"]
+
 [dependency-groups]
 dev = [
+    "mypy>=2.3.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.0",
 ]
