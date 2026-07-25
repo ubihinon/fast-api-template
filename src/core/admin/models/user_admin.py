@@ -10,7 +10,7 @@ from core.models.mixins import CreatedUpdatedMixin
 
 class UserAdmin(CreatedUpdatedMixin, Base):
     __tablename__ = "user_admin"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = {"schema": "admin", "extend_existing": True}
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
