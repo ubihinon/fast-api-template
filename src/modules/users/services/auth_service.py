@@ -115,8 +115,8 @@ class AuthMagicLinkService:
             expires_at=datetime.datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
 
-        is_deactivated = await self.login_code_repository.deactivate(login_code.id)
-        if is_deactivated is None:
+        deactivated_code = await self.login_code_repository.deactivate(login_code.id)
+        if deactivated_code is None:
             raise LoginCodeNotFoundException()
 
         logger.info(f"✓ User {user.email} logged in via Magic Link")
@@ -124,7 +124,7 @@ class AuthMagicLinkService:
 
         await self.session.commit()
 
-        return access_token
+        return AccessTokenSchema.model_validate(access_token)
 
     async def logout(self, user_id: int, token: str | None = None):
         if token:

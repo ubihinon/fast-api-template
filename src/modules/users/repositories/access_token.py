@@ -1,16 +1,14 @@
 import datetime
 
 from sqlalchemy import update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
-from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.models import AccessToken
 from modules.users.repositories.base import BaseRepository
 
 
 class AccessTokenRepository(BaseRepository):
-    async def create(self, token: str, user_id: UserIdType, expires_at: datetime.datetime) -> AccessTokenSchema:
+    async def create(self, token: str, user_id: UserIdType, expires_at: datetime.datetime) -> AccessToken:
         access_token = AccessToken(
             token=token,
             user_id=user_id,
@@ -18,7 +16,7 @@ class AccessTokenRepository(BaseRepository):
         )
         self.session.add(access_token)
         await self.session.flush()
-        return AccessTokenSchema.model_validate(access_token)
+        return access_token
 
     async def deactivate_token(self, user_id: UserIdType, token: str) -> bool:
         result = await self.session.execute(
