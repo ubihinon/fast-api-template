@@ -1,5 +1,4 @@
 import logging
-import sys
 from contextlib import asynccontextmanager
 
 import sentry_sdk
@@ -7,7 +6,6 @@ import sentry_sdk
 from core.logger_setup import setup_logging
 from core.settings import settings
 
-sys.path.insert(0, str(__file__).rsplit('/', 2)[0])
 
 from fastapi import FastAPI
 from core import admin
