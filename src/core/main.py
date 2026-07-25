@@ -35,7 +35,7 @@ listener = setup_logging()
 async def lifespan(app: FastAPI):
     logger.info("🚀 Starting FastAPI application...")
 
-    if settings.GRAFANA_API_USERNAME is None or settings.GRAFANA_API_PASSWORD is None:
+    if settings.GRAFANA_API_USERNAME == "" or settings.GRAFANA_API_PASSWORD == "":
         logger.warning("GRAFANA_API_USERNAME or GRAFANA_API_PASSWORD not set!")
         logger.warning("Logs won't be sent in Grafana Loki")
     else:
