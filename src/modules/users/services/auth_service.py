@@ -25,7 +25,7 @@ from modules.users.settings import (
 )
 
 logger = logging.getLogger(__name__)
-
+# TODO ADD LINTER
 
 class AuthMagicLinkService:
     def __init__(

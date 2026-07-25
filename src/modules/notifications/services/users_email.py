@@ -5,8 +5,6 @@ from .base_email import BaseEmailService, EmailPayload
 from ..settings import EmailSettings
 
 
-# TODO CREATE EMAIL STATUS MODEL
-
 class UsersEmailService(BaseEmailService):
     def __init__(self, settings: EmailSettings, background_tasks: BackgroundTasks):
         super().__init__(settings, background_tasks)
