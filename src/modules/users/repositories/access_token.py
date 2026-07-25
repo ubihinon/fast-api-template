@@ -31,7 +31,7 @@ class AccessTokenRepository:
             )
             .values(is_active=False)
         )
-        await self.session.commit()
+        await self.session.flush()
 
         return result.rowcount > 0
 
@@ -44,6 +44,6 @@ class AccessTokenRepository:
             )
             .values(is_active=False)
         )
-        await self.session.commit()
+        await self.session.flush()
 
         return result.rowcount > 0
