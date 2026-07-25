@@ -47,7 +47,7 @@ class AuthMagicLinkService:
         self.ip_address = ip_address
 
         user_db = User.get_db(user_repository.session)
-        self.user_manager = UserManager(user_db)
+        self.user_manager = UserManager(user_db, email_service)
 
     async def login(self, email: str):
         try:
@@ -133,15 +133,3 @@ class AuthMagicLinkService:
         else:
             await self.access_token_repository.deactivate_all_tokens(user_id)
         await self.session.commit()
-
-    # async def get_user(self, email: str):
-    #     user = await self.user_repository.get_by_email(email)
-    #     return user
-    #
-    # async def get_user_by_id(self, user_id: int):
-    #     user = await self.user_repository.get_by_id(user_id)
-    #     return user
-    #
-    # async def get_users(self):
-    #     users = await self.user_repository.all()
-    #     return users
