@@ -8,6 +8,7 @@ from core.settings import settings
 
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from core import admin
 from modules.users.api.v1 import router as users_router
 
@@ -43,6 +44,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,  # type: ignore[arg-type]
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(users_router)
 

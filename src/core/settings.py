@@ -48,5 +48,8 @@ class Settings(BaseSettings):
     GRAFANA_API_USERNAME: str = ""
     GRAFANA_API_PASSWORD: str = ""
 
+    CORS_ORIGINS: list[str] = []
+    CORS_ALLOW_CREDENTIALS: bool = True
+
 
 settings = Settings()
