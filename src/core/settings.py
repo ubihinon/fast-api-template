@@ -1,5 +1,6 @@
 import os
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
@@ -19,11 +20,11 @@ class Settings(BaseSettings):
     BEARER_TRANSPORT_TOKEN_URL: str = "api/v1/auth/login"
 
     ACCESS_TOKEN_LIFETIME_SECONDS: int = 3600
-    RESET_PASSWORD_TOKEN_SECRET: str = "<PASSWORD>"
-    VERIFICATION_TOKEN_SECRET: str = "<PASSWORD>"
+    RESET_PASSWORD_TOKEN_SECRET: str = Field(min_length=32)
+    VERIFICATION_TOKEN_SECRET: str = Field(min_length=32)
 
     # Server settings
-    SECRET_KEY: str = "1234567890"
+    SECRET_KEY: str = Field(min_length=32)
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
