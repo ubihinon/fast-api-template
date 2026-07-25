@@ -109,7 +109,7 @@ class AuthMagicLinkService:
 
         logger.info(f"✓ Code {code} is correct for user_id={user.id}")
 
-        access_token = await self.access_token_repository.generate(
+        access_token = await self.access_token_repository.create(
             token=secrets.token_urlsafe(48),
             user_id=user.id,
             expires_at=datetime.datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
