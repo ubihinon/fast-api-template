@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     )
 
     SENTRY_DSN: str | None = None
-    SENTRY_INTEGRATIONS: list = [FastApiIntegration()]
+    SENTRY_INTEGRATIONS: list = Field(default_factory=lambda: [FastApiIntegration()])
     SENTRY_TRACES_SAMPLE_RATE: float = 1.0
     SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = 1.0
 
