@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "error"
     ENABLE_ADMIN: bool = True
-    ADMIN_PASSWORD_MIN_LENGTH: int = 5
+    ADMIN_PASSWORD_MIN_LENGTH: int = 8
     DEBUG: bool = False
 
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@0.0.0.0:5432/postgres"
