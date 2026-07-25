@@ -127,14 +127,14 @@ class AuthMagicLinkService:
         else:
             await self.access_token_repository.deactivate_all_tokens(user_id)
 
-    async def get_user(self, email: str):
-        user = await self.repository.get_by_email(email)
-        return user
-
-    async def get_user_by_id(self, user_id: int):
-        user = await self.repository.get_by_id(user_id)
-        return user
-
-    async def get_users(self):
-        users = await self.repository.all()
-        return users
+    # async def get_user(self, email: str):
+    #     user = await self.user_repository.get_by_email(email)
+    #     return user
+    #
+    # async def get_user_by_id(self, user_id: int):
+    #     user = await self.user_repository.get_by_id(user_id)
+    #     return user
+    #
+    # async def get_users(self):
+    #     users = await self.user_repository.all()
+    #     return users
