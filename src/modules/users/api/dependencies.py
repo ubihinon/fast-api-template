@@ -19,6 +19,7 @@ async def get_auth_magic_link_service(
     email_service: Annotated[UsersEmailService, Depends(get_users_email_service)],
 ) -> AuthMagicLinkService:
     return AuthMagicLinkService(
+        session=session,
         user_repository=UserRepository(session),
         login_code_repository=LoginCodeRepository(session),
         login_attempt_repository=LoginAttemptRepository(session),

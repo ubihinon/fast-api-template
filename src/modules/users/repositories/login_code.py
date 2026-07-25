@@ -19,7 +19,7 @@ class LoginCodeRepository:
             expires_at=expires_at,
         )
         self.session.add(login_code)
-        await self.session.commit()
+        await self.session.flush()
         return LoginCodeReadSchema.model_validate(login_code)
 
     async def get_active(self, code: str, user_id: UserIdType) -> LoginCodeReadSchema | None:
@@ -43,7 +43,7 @@ class LoginCodeRepository:
             return None
 
         login_code.is_active = False
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(login_code)
 
         return LoginCodeReadSchema.model_validate(login_code)

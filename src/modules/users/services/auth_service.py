@@ -3,6 +3,7 @@ import logging
 import secrets
 
 from fastapi_users import exceptions
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
@@ -30,6 +31,7 @@ logging.basicConfig(level=logging.INFO)
 class AuthMagicLinkService:
     def __init__(
         self,
+        session: AsyncSession,
         user_repository: UserRepository,
         login_code_repository: LoginCodeRepository,
         login_attempt_repository: LoginAttemptRepository,
@@ -37,6 +39,7 @@ class AuthMagicLinkService:
         email_service: UsersEmailService,
         ip_address: str,
     ):
+        self.session = session
         self.user_repository = user_repository
         self.login_code_repository = login_code_repository
         self.login_attempt_repository = login_attempt_repository
@@ -69,6 +72,8 @@ class AuthMagicLinkService:
         )
         logger.info(f"Login code sent to {user.email}")
         self.email_service.send_login_code_email_task(user.email, login_code.code, LOGIN_CODE_EXPIRES_IN_TIMEDELTA)
+
+        await self.session.commit()
 
         return user
 
@@ -118,6 +123,8 @@ class AuthMagicLinkService:
         logger.info(f"✓ User {user.email} logged in via Magic Link")
         logger.info(f"✓ Access token: {access_token.token[:10]}...")
 
+        await self.session.commit()
+
         return access_token
 
     async def logout(self, user_id: int, token: str | None = None):
@@ -126,6 +133,7 @@ class AuthMagicLinkService:
                 raise AccessTokenNotFound("Token not found")
         else:
             await self.access_token_repository.deactivate_all_tokens(user_id)
+            await self.session.commit()
 
     # async def get_user(self, email: str):
     #     user = await self.user_repository.get_by_email(email)

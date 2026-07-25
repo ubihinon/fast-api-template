@@ -24,7 +24,7 @@ class LoginAttemptRepository:
             ip_address=ip_address,
         )
         self.session.add(login_code)
-        await self.session.commit()
+        await self.session.flush()
         return LoginAttemptReadSchema.model_validate(login_code)
 
     async def get_failed_attempts_count(self, code: str, user_id: UserIdType, ip_address: str) -> int:
