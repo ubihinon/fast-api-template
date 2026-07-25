@@ -132,7 +132,7 @@ class AuthMagicLinkService:
                 raise AccessTokenNotFound("Token not found")
         else:
             await self.access_token_repository.deactivate_all_tokens(user_id)
-            await self.session.commit()
+        await self.session.commit()
 
     # async def get_user(self, email: str):
     #     user = await self.user_repository.get_by_email(email)
