@@ -80,7 +80,7 @@ class GrafanaLokiHandler(logging.Handler):
         credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
 
         self.headers = {
-            "Content-TypeQ": "application/json",
+            "Content-Type": "application/json",
             "Authorization": f"Basic {credentials}"
         }
 
