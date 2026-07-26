@@ -21,7 +21,7 @@ class LoginCodeInvalidException(Exception):
 
 
 class LoginCodeNotFoundException(Exception):
-    def __init__(self, code_id: int = None):
+    def __init__(self, code_id: int):
         self.code_id = code_id
         super().__init__(f"Code with id '{code_id}' not found")
 
