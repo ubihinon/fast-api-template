@@ -31,4 +31,4 @@ class LoginAttemptRepository(BaseRepository):
             LoginAttempt.created_at >= (datetime.datetime.now(datetime.UTC) - LOGIN_CODE_EXPIRES_IN_TIMEDELTA),
             LoginAttempt.ip_address == ip_address,
         )
-        return await self.session.scalar(query)
+        return await self.session.scalar(query) or 0
