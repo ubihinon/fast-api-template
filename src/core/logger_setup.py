@@ -5,6 +5,7 @@ import logging
 import logging.config
 from logging.handlers import QueueHandler, QueueListener
 from queue import Queue
+from typing import Any
 
 import requests
 
@@ -89,7 +90,7 @@ class GrafanaLokiHandler(logging.Handler):
             log_entry = self.format(record)
             timestamp = str(int(datetime.datetime.now().timestamp() * 1e9))
 
-            payload = {
+            payload: dict[str, Any] = {
                 "streams": [{
                     "stream": {
                         "job": self.job_name,
