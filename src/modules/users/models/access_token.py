@@ -1,15 +1,39 @@
 import datetime
+from typing import Optional
 
 from fastapi_users_db_sqlalchemy.access_token import (
     SQLAlchemyAccessTokenDatabase,
     SQLAlchemyBaseAccessTokenTable,
 )
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.models.base import Base
 from core.models.types import UserIdType
+
+
+class ActiveAccessTokenDatabase(SQLAlchemyAccessTokenDatabase):
+    """Extends fastapi-users' default token DB to filter out inactive tokens.
+
+    The default get_by_token only checks the token string and creation date —
+    it ignores our is_active flag, so logout (which sets is_active=False)
+    would not actually invalidate the session. This subclass adds the filter.
+    """
+
+    async def get_by_token(
+        self, token: str, max_age: Optional[datetime.datetime] = None
+    ):
+        statement = select(self.access_token_table).where(
+            self.access_token_table.token == token,
+            self.access_token_table.is_active.is_(True),
+        )
+        if max_age is not None:
+            statement = statement.where(
+                self.access_token_table.created_at >= max_age
+            )
+        result = await self.session.execute(statement)
+        return result.scalar_one_or_none()
 
 
 class AccessToken(SQLAlchemyBaseAccessTokenTable[UserIdType], Base):
@@ -29,4 +53,4 @@ class AccessToken(SQLAlchemyBaseAccessTokenTable[UserIdType], Base):
 
     @classmethod
     def get_db(cls, session: AsyncSession):
-        return SQLAlchemyAccessTokenDatabase(session, cls)
+        return ActiveAccessTokenDatabase(session, cls)
