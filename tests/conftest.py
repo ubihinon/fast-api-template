@@ -30,8 +30,8 @@ def event_loop():
 # Database
 # ============================================================================
 
-# Используем тестовую БД (PostgreSQL).
-# При запуске тестов с хоста Docker-сервис доступен через localhost.
+# Use the test DB (PostgreSQL).
+# When running tests from the host, the Docker service is accessible via localhost.
 TEST_DATABASE_URL = settings.DATABASE_URL.replace("@postgres:", "@localhost:")
 
 
