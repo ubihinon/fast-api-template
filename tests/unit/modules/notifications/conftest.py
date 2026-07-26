@@ -23,5 +23,5 @@ def background_tasks() -> BackgroundTasks:
 def users_email_service(email_settings, background_tasks) -> UsersEmailService:
     service = UsersEmailService(email_settings, background_tasks)
     # Patch fastmail to avoid any real network calls
-    service.fastmail.send_message = AsyncMock(return_value=None)
+    service.fastmail.send_message = AsyncMock(return_value=None)  # type: ignore[method-assign]
     return service

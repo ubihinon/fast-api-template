@@ -32,7 +32,7 @@ class TestLogin:
 
         await auth_service.login("user@example.com")
 
-        auth_service.email_service.send_login_code_email_task.assert_called_once()
+        auth_service.email_service.send_login_code_email_task.assert_called_once()  # type: ignore[attr-defined]
 
     async def test_email_contains_six_digit_code(
         self, auth_service: AuthMagicLinkService, test_session, user_factory
@@ -41,7 +41,7 @@ class TestLogin:
 
         await auth_service.login("codecheck@example.com")
 
-        code = auth_service.email_service.send_login_code_email_task.call_args[0][1]
+        code = auth_service.email_service.send_login_code_email_task.call_args[0][1]  # type: ignore[attr-defined]
         assert len(code) == 6
         assert code.isdigit()
 
