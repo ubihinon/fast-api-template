@@ -1,6 +1,9 @@
 import datetime
 
+from typing import cast
+
 from sqlalchemy import update
+from sqlalchemy.engine import CursorResult
 
 from core.models.types import UserIdType
 from modules.users.models import AccessToken
@@ -19,25 +22,25 @@ class AccessTokenRepository(BaseRepository):
         return access_token
 
     async def deactivate_token(self, user_id: UserIdType, token: str) -> bool:
-        result = await self.session.execute(
+        result = cast(CursorResult, await self.session.execute(
             update(AccessToken)
             .where(
                 AccessToken.token == token,
                 AccessToken.user_id == user_id
             )
             .values(is_active=False)
-        )
+        ))
         await self.session.flush()
         return result.rowcount > 0
 
     async def deactivate_all_tokens(self, user_id: UserIdType) -> bool:
-        result = await self.session.execute(
+        result = cast(CursorResult, await self.session.execute(
             update(AccessToken)
             .where(
                 AccessToken.user_id == user_id,
                 AccessToken.is_active.is_(True)
             )
             .values(is_active=False)
-        )
+        ))
         await self.session.flush()
         return result.rowcount > 0
