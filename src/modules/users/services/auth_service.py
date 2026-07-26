@@ -29,8 +29,7 @@ from modules.users.settings import (
 )
 
 logger = logging.getLogger(__name__)
-# TODO ADD LINTER
-# TODO ADD TESTS
+
 
 class AuthMagicLinkService:
     def __init__(
