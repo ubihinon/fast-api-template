@@ -4,9 +4,9 @@ from starlette_admin import DropDown
 from starlette_admin.contrib.sqla import Admin, ModelView
 
 from core.admin.auth_provider import DatabaseAuthProvider
+from core.admin.models import UserAdmin
 from core.database import engine
 from core.settings import settings
-from core.admin.models import UserAdmin
 from modules.users.models import AccessToken, LoginAttempt, LoginCode, User
 
 

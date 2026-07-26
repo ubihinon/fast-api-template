@@ -1,15 +1,15 @@
 from typing import Annotated
 
 from fastapi import Depends
-from fastapi_users.authentication.strategy.db import AccessTokenDatabase, DatabaseStrategy
-
-from modules.users.dependencies import get_access_token_db
-from modules.users.models import AccessToken
-from fastapi_users.authentication import AuthenticationBackend
-
-from fastapi_users.authentication import BearerTransport
+from fastapi_users.authentication import AuthenticationBackend, BearerTransport
+from fastapi_users.authentication.strategy.db import (
+    AccessTokenDatabase,
+    DatabaseStrategy,
+)
 
 from core.settings import settings
+from modules.users.dependencies import get_access_token_db
+from modules.users.models import AccessToken
 
 
 def get_database_strategy(

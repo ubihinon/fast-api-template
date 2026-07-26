@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import validates
 
 from core.models.base import Base
-from core.models.types import UserIdType
 from core.models.mixins import CreatedUpdatedMixin, IdIntPkMixin
+from core.models.types import UserIdType
 
 
 class User(IdIntPkMixin, CreatedUpdatedMixin, SQLAlchemyBaseUserTable[UserIdType], Base):

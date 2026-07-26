@@ -1,5 +1,4 @@
 import datetime
-
 from typing import cast
 
 from sqlalchemy import update

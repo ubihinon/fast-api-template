@@ -1,20 +1,17 @@
 import logging
 from contextlib import asynccontextmanager
 
-import sentry_sdk
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from core import admin
 from core.limiter import limiter
 from core.logger_setup import setup_logging
 from core.settings import settings
-
-
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
-from core import admin
 from modules.users.api.v1 import router as users_router
 
 logger = logging.getLogger(__name__)

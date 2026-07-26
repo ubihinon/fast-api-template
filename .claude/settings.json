@@ -1,5 +1,10 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(.venv/bin/mypy src/ 2>&1)",
+      "Bash(.venv/bin/ruff check src/ 2>&1)",
+      "Bash(.venv/bin/ruff check --fix src/)"
+    ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",

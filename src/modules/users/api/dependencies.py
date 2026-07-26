@@ -8,7 +8,10 @@ from core.utils.http import get_client_ip
 from modules.notifications.dependencies import get_users_email_service
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.repositories import (
-    AccessTokenRepository, LoginAttemptRepository, LoginCodeRepository, UserRepository,
+    AccessTokenRepository,
+    LoginAttemptRepository,
+    LoginCodeRepository,
+    UserRepository,
 )
 from modules.users.services.auth_service import AuthMagicLinkService
 

@@ -1,8 +1,9 @@
 import datetime
+
 from fastapi import BackgroundTasks
 
-from .base_email import BaseEmailService, EmailPayload
 from ..settings import EmailSettings
+from .base_email import BaseEmailService, EmailPayload
 
 
 class UsersEmailService(BaseEmailService):

@@ -1,0 +1,1 @@
+Run `.venv/bin/ruff check src/ 2>&1` and fix all linting errors found in the output. Use `.venv/bin/ruff check --fix src/` to auto-fix where possible, then manually fix remaining errors. After fixing, run ruff check again to confirm no errors remain. Repeat until ruff reports no issues.

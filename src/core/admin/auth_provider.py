@@ -1,6 +1,5 @@
 import datetime
 import logging
-from typing import Optional
 
 from sqlalchemy import select
 from starlette.requests import Request
@@ -9,6 +8,7 @@ from starlette_admin.auth import AdminConfig, AdminUser, AuthProvider
 from starlette_admin.exceptions import FormValidationError, LoginFailed
 
 from core.database import async_session
+
 from .models import UserAdmin
 from .utils import verify_password
 
@@ -102,7 +102,7 @@ class DatabaseAuthProvider(AuthProvider):
         request.session.clear()
         return response
 
-    def get_admin_user(self, request: Request) -> Optional[AdminUser]:
+    def get_admin_user(self, request: Request) -> AdminUser | None:
         user = getattr(request.state, "user", {})
 
         if not user:
@@ -113,5 +113,5 @@ class DatabaseAuthProvider(AuthProvider):
             photo_url=None,
         )
 
-    def get_admin_config(self, request: Request) -> Optional[AdminConfig]:
+    def get_admin_config(self, request: Request) -> AdminConfig | None:
         return None

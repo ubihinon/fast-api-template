@@ -1,7 +1,7 @@
-from .user import User
 from .access_token import AccessToken
-from .login_code import LoginCode
 from .login_attempt import LoginAttempt
+from .login_code import LoginCode
+from .user import User
 
 __all__ = [
     "User",
