@@ -39,23 +39,16 @@ class BaseEmailService:
         payload: EmailPayload,
         subtype: MessageType = MessageType.html
     ) -> MessageSchema:
-        body = payload.body
-        params = {
-            "subject": payload.subject,
-            "recipients": payload.recipients,
-            "template_body": body,
-            "subtype": subtype,
-        }
-        if payload.attachments:
-            params["attachments"] = payload.attachments
-        if payload.cc:
-            params["cc"] = payload.cc
-        if payload.bcc:
-            params["bcc"] = payload.bcc
-        if payload.reply_to:
-            params["reply_to"] = payload.reply_to
-
-        return MessageSchema(**params)
+        return MessageSchema(
+            subject=payload.subject,
+            recipients=payload.recipients,
+            template_body=payload.body,
+            subtype=subtype,
+            attachments=payload.attachments or [],
+            cc=payload.cc or [],
+            bcc=payload.bcc or [],
+            reply_to=payload.reply_to or [],
+        )
 
     async def send_email_async(
         self,
