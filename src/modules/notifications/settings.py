@@ -1,13 +1,13 @@
 from pathlib import Path
 from typing import Optional
-from pydantic import EmailStr
+from pydantic import EmailStr, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 
 class EmailSettings(BaseSettings):
     MAIL_USERNAME: str = "username@example.com"
-    MAIL_PASSWORD: str = "<MAIL_PASSWORD>"
+    MAIL_PASSWORD: SecretStr = SecretStr("<MAIL_PASSWORD>")
     MAIL_FROM: EmailStr = "username@example.com"
     MAIL_PORT: int = 587
     MAIL_SERVER: str = "smtp.gmail.com"

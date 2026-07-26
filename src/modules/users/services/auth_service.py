@@ -118,7 +118,7 @@ class AuthMagicLinkService:
 
         deactivated_code = await self.login_code_repository.deactivate(login_code.id)
         if deactivated_code is None:
-            raise LoginCodeNotFoundException()
+            raise LoginCodeNotFoundException(login_code.id)
 
         logger.info(f"✓ User {user.email} logged in via Magic Link")
         logger.info(f"✓ Access token: {access_token.token[:10]}...")
