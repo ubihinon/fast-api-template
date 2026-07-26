@@ -89,4 +89,4 @@ def custom_openapi():
     return schema
 
 
-app.openapi = custom_openapi
+setattr(app, "openapi", custom_openapi)
