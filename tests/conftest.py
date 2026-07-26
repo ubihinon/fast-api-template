@@ -11,9 +11,6 @@ from core.settings import settings
 from core.models.base import Base
 from modules.users.models import User, LoginCode, AccessToken  # noqa: F401
 
-pytest_plugins = ["tests.fixtures"]
-
-
 # ============================================================================
 # Async Event Loop
 # ============================================================================
@@ -43,13 +40,11 @@ async def test_engine():
         echo=False,
     )
 
-    # Создаем таблицы
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
 
-    # Удаляем таблицы
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
