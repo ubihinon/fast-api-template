@@ -88,7 +88,6 @@ class DatabaseAuthProvider(AuthProvider):
                     "id": user.id,
                     "username": user.username,
                     "email": user.email,
-                    "full_name": user.full_name,
                     "is_superuser": user.is_superuser,
                     "is_active": user.is_active,
                 }
