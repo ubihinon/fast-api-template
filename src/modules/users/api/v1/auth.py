@@ -7,13 +7,22 @@ from core.limiter import limiter
 from core.settings import settings
 from modules.users.api.dependencies import get_auth_magic_link_service
 from modules.users.exceptions import (
-    AccessTokenNotFound, AuthErrorException, LoginCodeInvalidException, LoginMaxNumberAttemptsException,
+    AccessTokenNotFound,
+    AuthErrorException,
+    LoginCodeInvalidException,
+    LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
 from modules.users.fastapi_users_config import current_active_user
 from modules.users.models import User
-from modules.users.schemas.requests import LoginWithEmailRequestSchema, VerifyLoginRequestSchema
-from modules.users.schemas.responses import LoginAccessTokenResponseSchema, LoginResponse
+from modules.users.schemas.requests import (
+    LoginWithEmailRequestSchema,
+    VerifyLoginRequestSchema,
+)
+from modules.users.schemas.responses import (
+    LoginAccessTokenResponseSchema,
+    LoginResponse,
+)
 from modules.users.services.auth_service import AuthMagicLinkService
 
 logger = logging.getLogger(__name__)

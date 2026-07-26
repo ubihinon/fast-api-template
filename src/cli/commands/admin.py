@@ -14,7 +14,6 @@ from core.admin.models import UserAdmin
 from core.admin.utils import hash_password
 from core.database import async_session
 
-
 admin_app = typer.Typer(help="Admin commands")
 
 

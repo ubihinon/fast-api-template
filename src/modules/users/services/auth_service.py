@@ -7,9 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
+from modules.users.dtos.user import UserCreate
 from modules.users.exceptions import (
-    AccessTokenNotFound, AuthErrorException, LoginCodeInvalidException,
-    LoginCodeNotFoundException, LoginMaxNumberAttemptsException,
+    AccessTokenNotFound,
+    AuthErrorException,
+    LoginCodeInvalidException,
+    LoginCodeNotFoundException,
+    LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
 from modules.users.manager import UserManager
@@ -18,9 +22,9 @@ from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
-from modules.users.dtos.user import UserCreate
 from modules.users.settings import (
-    ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
+    ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+    LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
     MAX_LOGIN_ATTEMPTS,
 )
 

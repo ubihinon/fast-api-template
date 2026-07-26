@@ -11,7 +11,6 @@ import requests
 
 from core.settings import settings
 
-
 logger = logging.getLogger(__name__)
 
 

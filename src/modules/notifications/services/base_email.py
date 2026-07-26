@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, cast
+from typing import cast
 
 from fastapi import BackgroundTasks
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
@@ -54,7 +54,7 @@ class BaseEmailService:
     async def send_email_async(
         self,
         payload: EmailPayload,
-        template_name: Optional[str] = None,
+        template_name: str | None = None,
         subtype: MessageType = MessageType.html
     ) -> bool:
         message = self._prepare_message(payload, subtype)
@@ -72,7 +72,7 @@ class BaseEmailService:
     def send_email_background(
         self,
         payload: EmailPayload,
-        template_name: Optional[str] = None,
+        template_name: str | None = None,
         subtype: MessageType = MessageType.html
     ):
         """

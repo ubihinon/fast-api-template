@@ -1,8 +1,7 @@
 from pathlib import Path
-from typing import Optional
+
 from pydantic import EmailStr, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
 
 
 class EmailSettings(BaseSettings):
@@ -19,7 +18,7 @@ class EmailSettings(BaseSettings):
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
 
-    TEMPLATE_FOLDER: Optional[Path] = Path(__file__).parent / "templates"
+    TEMPLATE_FOLDER: Path | None = Path(__file__).parent / "templates"
     # Disables sending emails for testing
     # SUPPRESS_SEND: bool = True
     SUPPRESS_SEND: bool = False

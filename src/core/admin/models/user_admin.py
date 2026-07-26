@@ -1,5 +1,4 @@
 import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -18,7 +17,7 @@ class UserAdmin(CreatedUpdatedMixin, Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)
-    last_login: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
         return f"<UserAdmin(id={self.id}, username='{self.username}', email='{self.email}')>"

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from modules.users.fastapi_users_config import fastapi_users
 from modules.users.dtos.user import UserRead, UserUpdate
+from modules.users.fastapi_users_config import fastapi_users
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
