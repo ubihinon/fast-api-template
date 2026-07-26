@@ -1,9 +1,10 @@
 import logging
-from typing import Optional
+from typing import Optional, cast
 
 from fastapi import BackgroundTasks
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from fastapi_mail.errors import ConnectionErrors
+from pydantic import NameEmail
 
 from modules.notifications.schemas.email_payload import EmailPayload
 from modules.notifications.settings import EmailSettings
@@ -41,13 +42,13 @@ class BaseEmailService:
     ) -> MessageSchema:
         return MessageSchema(
             subject=payload.subject,
-            recipients=payload.recipients,
+            recipients=cast(list[NameEmail], payload.recipients),
             template_body=payload.body,
             subtype=subtype,
             attachments=payload.attachments or [],
-            cc=payload.cc or [],
-            bcc=payload.bcc or [],
-            reply_to=payload.reply_to or [],
+            cc=cast(list[NameEmail], payload.cc or []),
+            bcc=cast(list[NameEmail], payload.bcc or []),
+            reply_to=cast(list[NameEmail], payload.reply_to or []),
         )
 
     async def send_email_async(
