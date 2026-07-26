@@ -30,8 +30,9 @@ def event_loop():
 # Database
 # ============================================================================
 
-# Используем тестовую БД
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+# Используем тестовую БД (PostgreSQL).
+# При запуске тестов с хоста Docker-сервис доступен через localhost.
+TEST_DATABASE_URL = settings.DATABASE_URL.replace("@postgres:", "@localhost:")
 
 
 @pytest_asyncio.fixture
@@ -40,7 +41,6 @@ async def test_engine():
     engine = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
-        connect_args={"check_same_thread": False},
     )
 
     # Создаем таблицы
@@ -74,7 +74,6 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 @pytest.fixture
 def test_settings():
     """Override settings for tests."""
-    settings.DATABASE_URL = TEST_DATABASE_URL
     settings.DEBUG = True
     return settings
 
