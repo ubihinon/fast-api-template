@@ -51,7 +51,6 @@ async def _createsuperuser(username: str, email: str, password: str, password_co
                 username=username,
                 email=email,
                 password_hash=hash_password(password),
-                full_name=username,
                 is_active=True,
                 is_superuser=True,
             )
