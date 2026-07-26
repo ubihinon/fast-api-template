@@ -10,7 +10,7 @@ from core.models.types import UserIdType
 
 class User(IdIntPkMixin, CreatedUpdatedMixin, SQLAlchemyBaseUserTable[UserIdType], Base):
     __table_args__ = (
-        Index('ix_user_email', SQLAlchemyBaseUserTable.email, unique=True),
+        Index("ix_user_email", "email", unique=True),
         {"schema": "users", "extend_existing": True},
     )
 
