@@ -1,13 +1,13 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, NameEmail
 
 
 class EmailPayload(BaseModel):
-    recipients: List[Union[NameEmail, str]]
+    recipients: list[NameEmail]
     subject: str
-    body: Optional[Union[str, Dict[str, Any]]] = None
-    cc: Optional[List[Union[NameEmail, str]]] = None
-    bcc: Optional[List[Union[NameEmail, str]]] = None
-    reply_to: Optional[List[Union[NameEmail, str]]] = None
-    attachments: Optional[List[Any]] = None
+    body: str | dict[str, Any] | None = None
+    cc: list[NameEmail] | None = None
+    bcc: list[NameEmail] | None = None
+    reply_to: list[NameEmail] | None = None
+    attachments: list[Any] | None = None
