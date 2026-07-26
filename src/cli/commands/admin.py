@@ -1,18 +1,12 @@
 import asyncio
-import sys
-from pathlib import Path
 
 import typer
 from sqlalchemy import select
 
-from core.settings import settings
-
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 from core.admin.models import UserAdmin
 from core.admin.utils import hash_password
 from core.database import async_session
+from core.settings import settings
 
 admin_app = typer.Typer(help="Admin commands")
 
