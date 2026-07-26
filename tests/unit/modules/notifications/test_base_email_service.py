@@ -55,17 +55,17 @@ class TestSendEmailAsync:
     async def test_calls_fastmail_send_message(self, users_email_service: UsersEmailService):
         payload = make_payload()
         await users_email_service.send_email_async(payload, template_name="tmpl.html")
-        users_email_service.fastmail.send_message.assert_awaited_once()
+        users_email_service.fastmail.send_message.assert_awaited_once()  # type: ignore[attr-defined]
 
     async def test_returns_false_on_connection_error(self, users_email_service: UsersEmailService):
-        users_email_service.fastmail.send_message = AsyncMock(
+        users_email_service.fastmail.send_message = AsyncMock(  # type: ignore[method-assign]
             side_effect=ConnectionErrors("SMTP unreachable")
         )
         result = await users_email_service.send_email_async(make_payload())
         assert result is False
 
     async def test_returns_false_on_unexpected_error(self, users_email_service: UsersEmailService):
-        users_email_service.fastmail.send_message = AsyncMock(
+        users_email_service.fastmail.send_message = AsyncMock(  # type: ignore[method-assign]
             side_effect=RuntimeError("boom")
         )
         result = await users_email_service.send_email_async(make_payload())
