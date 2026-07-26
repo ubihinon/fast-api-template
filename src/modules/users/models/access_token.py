@@ -1,5 +1,4 @@
 import datetime
-from typing import Optional
 
 from fastapi_users_db_sqlalchemy.access_token import (
     SQLAlchemyAccessTokenDatabase,
@@ -22,7 +21,7 @@ class ActiveAccessTokenDatabase(SQLAlchemyAccessTokenDatabase):
     """
 
     async def get_by_token(
-        self, token: str, max_age: Optional[datetime.datetime] = None
+        self, token: str, max_age: datetime.datetime | None = None
     ):
         statement = select(self.access_token_table).where(
             self.access_token_table.token == token,
