@@ -134,6 +134,9 @@ CELERY_RESULT_BACKEND_URL=redis://localhost:6379/1
 MAIL_USERNAME=your@email.com
 MAIL_PASSWORD=your-smtp-password
 MAIL_FROM=your@email.com
+MAIL_PORT=587
+MAIL_SERVER=smtp.gmail.com
+MAIL_FROM_NAME=FastAPI Application
 
 # Optional
 ENABLE_ADMIN=True
@@ -288,6 +291,12 @@ pytest tests/unit/modules/users/test_login.py::TestClassName::test_method_name
 | `CORS_ORIGINS` | `[]` | No | Allowed CORS origins (JSON list) |
 | `RATE_LIMIT_LOGIN` | `10/minute` | No | Rate limit for login endpoint |
 | `RATE_LIMIT_VERIFY` | `10/minute` | No | Rate limit for verify endpoint |
+| `MAIL_USERNAME` | — | No | SMTP username |
+| `MAIL_PASSWORD` | — | No | SMTP password |
+| `MAIL_FROM` | — | No | Sender email address |
+| `MAIL_PORT` | `587` | No | SMTP port |
+| `MAIL_SERVER` | `smtp.gmail.com` | No | SMTP server host |
+| `MAIL_FROM_NAME` | `FastAPI Application` | No | Sender display name |
 | `SENTRY_DSN` | — | No | Sentry DSN for error tracking |
 | `GRAFANA_LOKI_URL` | — | No | Grafana Loki endpoint for log shipping |
 | `GRAFANA_API_USERNAME` | — | No | Grafana API username |
