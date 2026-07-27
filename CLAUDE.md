@@ -16,12 +16,12 @@ pytest
 
 **Run a single test file:**
 ```bash
-pytest tests/unit/modules/users/test_services.py
+pytest tests/unit/modules/users/test_login.py
 ```
 
 **Run a single test:**
 ```bash
-pytest tests/unit/modules/users/test_services.py::TestClassName::test_method_name
+pytest tests/unit/modules/users/test_login.py::TestClassName::test_method_name
 ```
 
 **Database migrations:**
