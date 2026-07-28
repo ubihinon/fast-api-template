@@ -17,14 +17,18 @@ logger = logging.getLogger(__name__)
 def setup_logging():
     log_queue = Queue(-1)
 
-    grafana_handler = GrafanaLokiHandler(
-        loki_url=settings.GRAFANA_LOKI_URL,
-        username=settings.GRAFANA_API_USERNAME,
-        password=settings.GRAFANA_API_PASSWORD,
-        job_name="fastapi-app"
-    )
-    grafana_handler.setLevel(settings.LOG_LEVEL)
-    grafana_handler.setFormatter(JsonFormatter())
+    handlers: list[logging.Handler] = []
+
+    if settings.GRAFANA_LOKI_URL:
+        grafana_handler = GrafanaLokiHandler(
+            loki_url=settings.GRAFANA_LOKI_URL,
+            username=settings.GRAFANA_API_USERNAME,
+            password=settings.GRAFANA_API_PASSWORD,
+            job_name="fastapi-app"
+        )
+        grafana_handler.setLevel(settings.LOG_LEVEL)
+        grafana_handler.setFormatter(JsonFormatter())
+        handlers.append(grafana_handler)
 
     # Console handler (for local development)
     console_handler = logging.StreamHandler()
@@ -33,13 +37,13 @@ def setup_logging():
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     console_handler.setFormatter(console_formatter)
+    handlers.append(console_handler)
 
     queue_handler = QueueHandler(log_queue)
 
     listener = QueueListener(
         log_queue,
-        grafana_handler,
-        console_handler,
+        *handlers,
         respect_handler_level=True
     )
     listener.start()
