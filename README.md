@@ -274,31 +274,69 @@ pytest tests/unit/modules/users/test_login.py::TestClassName::test_method_name
 
 ## Environment Variables Reference
 
+### Core
+
 | Variable | Default | Required | Description |
 |---|---|---|---|
 | `DATABASE_URL` | — | Yes | Async DB connection string (`asyncpg`) |
-| `SYNC_DATABASE_URL` | — | Yes | Sync DB connection string (`psycopg2`) |
-| `SECRET_KEY` | — | Yes | Session secret (min 32 chars) |
-| `RESET_PASSWORD_TOKEN_SECRET` | — | Yes | Token secret (min 32 chars) |
-| `VERIFICATION_TOKEN_SECRET` | — | Yes | Token secret (min 32 chars) |
-| `CELERY_BROKER_URL` | `redis://localhost:6379/0` | No | Celery broker |
-| `CELERY_RESULT_BACKEND_URL` | `redis://localhost:6379/1` | No | Celery result backend |
-| `CELERY_ALWAYS_EAGER` | `False` | No | Run tasks synchronously (useful in tests) |
-| `ENABLE_ADMIN` | `True` | No | Mount admin panel at `/admin` |
-| `ENVIRONMENT` | `development` | No | `development` / `production` |
+| `SYNC_DATABASE_URL` | — | Yes | Sync DB connection string (`psycopg2`, used by Alembic and admin) |
+| `SECRET_KEY` | — | Yes | Session secret for admin panel (min 32 chars) |
+| `HOST` | `0.0.0.0` | No | Bind host |
+| `PORT` | `8000` | No | Bind port |
+| `ENVIRONMENT` | `development` | No | Environment name (e.g. `production`) |
 | `DEBUG` | `False` | No | Enable debug mode |
-| `LOG_LEVEL` | `error` | No | Logging level |
-| `CORS_ORIGINS` | `[]` | No | Allowed CORS origins (JSON list) |
-| `RATE_LIMIT_LOGIN` | `10/minute` | No | Rate limit for login endpoint |
-| `RATE_LIMIT_VERIFY` | `10/minute` | No | Rate limit for verify endpoint |
+| `LOG_LEVEL` | `error` | No | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
+| `ENABLE_ADMIN` | `True` | No | Mount starlette-admin at `/admin` |
+| `ADMIN_PASSWORD_MIN_LENGTH` | `8` | No | Minimum admin password length |
+| `CORS_ORIGINS` | `[]` | No | Allowed CORS origins as a JSON list |
+| `CORS_ALLOW_CREDENTIALS` | `True` | No | Allow cookies/auth headers in CORS requests |
+| `TRUST_PROXY_HEADERS` | `False` | No | Trust `X-Forwarded-For` (enable only behind a trusted reverse proxy) |
+
+### Celery
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `CELERY_BROKER_URL` | `redis://localhost:6379/0` | No | Celery broker URL |
+| `CELERY_RESULT_BACKEND_URL` | `redis://localhost:6379/1` | No | Celery result backend URL |
+| `CELERY_ALWAYS_EAGER` | `False` | No | Run tasks synchronously (set `True` in tests) |
+
+### Auth / Tokens
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `RESET_PASSWORD_TOKEN_SECRET` | — | Yes | Secret for password reset tokens (min 32 chars) |
+| `VERIFICATION_TOKEN_SECRET` | — | Yes | Secret for email verification tokens (min 32 chars) |
+| `BEARER_TRANSPORT_TOKEN_URL` | `api/v1/auth/login` | No | Token URL shown in OpenAPI docs |
+| `ACCESS_TOKEN_LIFETIME_SECONDS` | `3600` | No | Access token TTL in seconds |
+| `LOGIN_CODE_EXPIRES_IN_TIMEDELTA` | `0:15:00` | No | Magic link code TTL (timedelta string, e.g. `0:15:00`) |
+| `MAX_LOGIN_ATTEMPTS` | `5` | No | Max failed code attempts before lockout |
+| `RATE_LIMIT_LOGIN` | `10/minute` | No | Rate limit for the login endpoint |
+| `RATE_LIMIT_VERIFY` | `10/minute` | No | Rate limit for the verify-login endpoint |
+
+### Email (SMTP)
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
 | `MAIL_USERNAME` | — | No | SMTP username |
 | `MAIL_PASSWORD` | — | No | SMTP password |
 | `MAIL_FROM` | — | No | Sender email address |
 | `MAIL_PORT` | `587` | No | SMTP port |
 | `MAIL_SERVER` | `smtp.gmail.com` | No | SMTP server host |
 | `MAIL_FROM_NAME` | `FastAPI Application` | No | Sender display name |
-| `SENTRY_DSN` | — | No | Sentry DSN for error tracking |
-| `GRAFANA_LOKI_URL` | — | No | Grafana Loki endpoint for log shipping |
+| `MAIL_STARTTLS` | `True` | No | Use STARTTLS |
+| `MAIL_SSL_TLS` | `False` | No | Use SSL/TLS (mutually exclusive with STARTTLS) |
+| `USE_CREDENTIALS` | `True` | No | Authenticate with SMTP server |
+| `VALIDATE_CERTS` | `True` | No | Validate TLS certificates |
+| `SUPPRESS_SEND` | `False` | No | Disable actual email sending (useful in tests) |
+
+### Observability
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `SENTRY_DSN` | — | No | Sentry DSN — Sentry is disabled when empty |
+| `SENTRY_TRACES_SAMPLE_RATE` | `1.0` | No | Sentry performance traces sample rate (0.0–1.0) |
+| `SENTRY_PROFILE_SESSION_SAMPLE_RATE` | `1.0` | No | Sentry profiling sample rate (0.0–1.0) |
+| `GRAFANA_LOKI_URL` | — | No | Grafana Loki push endpoint — log shipping disabled when empty |
 | `GRAFANA_API_USERNAME` | — | No | Grafana API username |
 | `GRAFANA_API_PASSWORD` | — | No | Grafana API password |
 
