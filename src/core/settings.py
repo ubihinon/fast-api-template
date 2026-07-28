@@ -53,5 +53,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_LOGIN: str = "10/minute"
     RATE_LIMIT_VERIFY: str = "10/minute"
 
+    # Set to True only when the app runs behind a trusted reverse proxy (nginx, etc.)
+    # When False, X-Forwarded-For is ignored to prevent IP spoofing
+    TRUST_PROXY_HEADERS: bool = False
+
 
 settings = Settings()
