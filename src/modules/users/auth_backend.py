@@ -7,18 +7,18 @@ from fastapi_users.authentication.strategy.db import (
     DatabaseStrategy,
 )
 
-from core.settings import settings
 from modules.users.dependencies import get_access_token_db
+from modules.users.settings import users_settings
 from modules.users.models import AccessToken
 
 
 def get_database_strategy(
     access_token_db: Annotated[AccessTokenDatabase[AccessToken], Depends(get_access_token_db)],
 ) -> DatabaseStrategy:
-    return DatabaseStrategy(access_token_db, lifetime_seconds=settings.ACCESS_TOKEN_LIFETIME_SECONDS)
+    return DatabaseStrategy(access_token_db, lifetime_seconds=users_settings.ACCESS_TOKEN_LIFETIME_SECONDS)
 
 
-bearer_transport = BearerTransport(tokenUrl=settings.BEARER_TRANSPORT_TOKEN_URL)
+bearer_transport = BearerTransport(tokenUrl=users_settings.BEARER_TRANSPORT_TOKEN_URL)
 
 
 auth_backend = AuthenticationBackend(
