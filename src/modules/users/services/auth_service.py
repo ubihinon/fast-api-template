@@ -63,6 +63,7 @@ class AuthMagicLinkService:
         if not user.is_active:
             raise AuthErrorException(f"User {email} is not active")
 
+        await self.login_code_repository.deactivate_all_for_user(user.id)
         login_code = await self.login_code_repository.create(
             user_id=user.id,
             code=self.generate_code(),

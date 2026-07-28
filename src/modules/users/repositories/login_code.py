@@ -37,3 +37,11 @@ class LoginCodeRepository(BaseRepository):
         )
         await self.session.flush()
         return result.scalar_one_or_none()
+
+    async def deactivate_all_for_user(self, user_id: UserIdType) -> None:
+        await self.session.execute(
+            update(LoginCode)
+            .where(LoginCode.user_id == user_id, LoginCode.is_active.is_(True))
+            .values(is_active=False)
+        )
+        await self.session.flush()
