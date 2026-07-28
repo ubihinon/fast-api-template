@@ -91,7 +91,7 @@ class AuthMagicLinkService:
             raise UserNotFoundException(email)
 
         failed_attempts_count = await self.login_attempt_repository.get_failed_attempts_count(
-            code, user.id, self.ip_address
+            user.id, self.ip_address
         )
 
         if failed_attempts_count >= MAX_LOGIN_ATTEMPTS:
