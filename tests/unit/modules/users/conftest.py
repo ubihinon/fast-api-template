@@ -55,7 +55,7 @@ async def user_factory():
             is_superuser=is_superuser,
         )
         session.add(user)
-        await session.commit()
+        await session.flush()
         await session.refresh(user)
         return user
 
@@ -79,7 +79,7 @@ async def login_code_factory():
             expires_at=datetime.datetime.now(datetime.UTC) + LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
         session.add(login_code)
-        await session.commit()
+        await session.flush()
         await session.refresh(login_code)
         return login_code
 
