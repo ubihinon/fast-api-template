@@ -17,7 +17,10 @@ class UsersSettings(BaseSettings):
 
     MAX_LOGIN_ATTEMPTS: int = 5
     LOGIN_CODE_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(minutes=15)
-    ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(seconds=3600)
+
+    @property
+    def ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA(self) -> datetime.timedelta:
+        return datetime.timedelta(seconds=self.ACCESS_TOKEN_LIFETIME_SECONDS)
 
     model_config = SettingsConfigDict(
         env_file=os.getenv("ENV_FILE", ".env"),
