@@ -1,3 +1,5 @@
+from collections.abc import Callable, Awaitable
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -6,11 +8,11 @@ from core.i18n import SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, current_language
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: object) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         lang = self._detect_language(request)
         token = current_language.set(lang)
         try:
-            return await call_next(request)  # type: ignore[operator]
+            return await call_next(request)
         finally:
             current_language.reset(token)
 

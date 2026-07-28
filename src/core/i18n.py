@@ -1,6 +1,8 @@
 from contextvars import ContextVar
 from pathlib import Path
 
+from gettext import NullTranslations
+
 from babel.support import Translations
 
 LOCALES_DIR = Path(__file__).parent.parent / "locales"
@@ -9,7 +11,7 @@ DEFAULT_LANGUAGE = "en"
 
 current_language: ContextVar[str] = ContextVar("current_language", default=DEFAULT_LANGUAGE)
 
-_translations: dict[str, Translations] = {}
+_translations: dict[str, NullTranslations] = {}
 
 
 def load_translations() -> None:
