@@ -17,13 +17,10 @@ from modules.users.models import User, LoginCode, AccessToken  # noqa: F401
 TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="session")
 async def test_engine():
-    """Create test database engine."""
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        echo=False,
-    )
+    """Create test database engine once per session."""
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -38,15 +35,16 @@ async def test_engine():
 
 @pytest_asyncio.fixture
 async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    async_session = async_sessionmaker(
-        test_engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-    )
-
-    async with async_session() as session:
-        yield session
-        await session.rollback()
+    async with test_engine.connect() as conn:
+        await conn.begin_nested()
+        async_session = async_sessionmaker(
+            bind=conn,
+            class_=AsyncSession,
+            expire_on_commit=False,
+        )
+        async with async_session() as session:
+            yield session
+            await session.rollback()
 # ============================================================================
 # Settings
 # ============================================================================
