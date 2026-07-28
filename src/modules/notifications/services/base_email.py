@@ -69,6 +69,45 @@ class BaseEmailService:
             logger.error(f"SomeThing wend wrong during sending email '{payload.subject}': {e}", exc_info=True)
             return False
 
+    async def send_rendered_email_async(
+        self,
+        recipients: list[str],
+        subject: str,
+        html: str,
+    ) -> bool:
+        payload = EmailPayload(recipients=recipients, subject=subject, body=html)
+        message = MessageSchema(
+            subject=payload.subject,
+            recipients=payload.recipients,  # type: ignore[arg-type]
+            body=html,
+            subtype=MessageType.html,
+        )
+        try:
+            await self.fastmail.send_message(message)
+            return True
+        except ConnectionErrors as e:
+            logger.error(f"Error during sending email '{subject}': {e}", exc_info=True)
+            return False
+        except Exception as e:
+            logger.error(f"Something went wrong during sending email '{subject}': {e}", exc_info=True)
+            return False
+
+    def send_rendered_email_background(
+        self,
+        recipients: list[str],
+        subject: str,
+        html: str,
+    ) -> None:
+        payload = EmailPayload(recipients=recipients, subject=subject, body=html)
+        message = MessageSchema(
+            subject=payload.subject,
+            recipients=payload.recipients,  # type: ignore[arg-type]
+            body=html,
+            subtype=MessageType.html,
+        )
+        self.background_tasks.add_task(self.fastmail.send_message, message)
+        logger.info(f"Send email task '{subject}' added to background tasks FastAPI.")
+
     def send_email_background(
         self,
         payload: EmailPayload,
