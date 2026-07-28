@@ -45,6 +45,18 @@ cd src && celery -A core.celery_app beat --loglevel=info
 cd src && python -m cli.main admin --help
 ```
 
+**Internationalization (i18n):**
+```bash
+# Extract translatable strings from source code
+.venv/bin/pybabel extract -F babel.cfg -o src/locales/messages.pot src/
+
+# Update existing .po files with new strings
+.venv/bin/pybabel update -i src/locales/messages.pot -d src/locales
+
+# Compile .po → .mo (required after editing translations)
+.venv/bin/pybabel compile -d src/locales
+```
+
 ## Architecture
 
 **`src/` is the Python root** — `pythonpath = src` is set in `pytest.ini`, so all imports are relative to `src/`. The app entry point is `src/core/main.py`.
@@ -55,6 +67,8 @@ cd src && python -m cli.main admin --help
 - `database.py` — SQLAlchemy async engine (`asyncpg`) + sync engine (`psycopg2`) + `get_session()` dependency
 - `celery_app.py` — Celery instance with Redis broker/backend; auto-discovers tasks from `core.tasks`
 - `celery_beat_schedule.py` — Periodic task schedule
+- `i18n.py` — Babel-based i18n: `load_translations()`, `_()` translation function, `current_language` ContextVar
+- `middleware.py` — `LanguageMiddleware`: detects language from `Accept-Language` header or `?lang=` query param
 - `admin/` — starlette-admin panel (enabled via `ENABLE_ADMIN=True`); uses `DatabaseAuthProvider` for admin-only login
 
 ### Modules (`src/modules/`)
