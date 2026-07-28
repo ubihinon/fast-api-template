@@ -1,4 +1,5 @@
 import logging
+import warnings
 from contextlib import asynccontextmanager
 
 import sentry_sdk
@@ -9,6 +10,8 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+
+warnings.filterwarnings("ignore", message=".*HTTP_422_UNPROCESSABLE_ENTITY.*", module="starlette_admin.*")
 
 from core import admin
 from core.i18n import load_translations
