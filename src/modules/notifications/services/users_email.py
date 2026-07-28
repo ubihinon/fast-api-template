@@ -33,21 +33,21 @@ class UsersEmailService(BaseEmailService):
             html=html,
         )
 
-    def send_login_code_email_task(self, email: str, login_code: str, expires_in: datetime.timedelta) -> None:
+    def send_login_code_email_task(self, email: str, login_code: str, expires_in: datetime.timedelta) -> list:
         html = render_email_template("users/login_code.html", {
             "email": email,
             "code": login_code,
             "code_expires_in": expires_in,
         })
-        self.send_rendered_email_background(
+        return self.send_rendered_email_background(
             recipients=[email],
             subject=_("Login code"),
             html=html,
         )
 
-    def send_welcome_email_task(self, email: str) -> None:
+    def send_welcome_email_task(self, email: str) -> list:
         html = render_email_template("users/welcome.html", {"email": email})
-        self.send_rendered_email_background(
+        return self.send_rendered_email_background(
             recipients=[email],
             subject=_("Welcome to our service!"),
             html=html,
