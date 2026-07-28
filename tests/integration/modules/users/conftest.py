@@ -5,8 +5,8 @@ import secrets
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.settings import settings
 from modules.users.models import AccessToken, User
-from modules.users.settings import ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
 
 
 @pytest_asyncio.fixture
@@ -48,7 +48,7 @@ async def user_token(existing_user: User, db_session: AsyncSession) -> str:
         token=token_value,
         user_id=existing_user.id,
         is_active=True,
-        expires_at=datetime.datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+        expires_at=datetime.datetime.now(datetime.UTC) + settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
     )
     db_session.add(token)
     await db_session.commit()

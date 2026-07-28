@@ -3,6 +3,7 @@ import datetime
 
 import pytest
 
+from core.settings import settings
 from modules.users.exceptions import (
     LoginCodeInvalidException,
     LoginMaxNumberAttemptsException,
@@ -11,7 +12,6 @@ from modules.users.exceptions import (
 from modules.users.models import LoginCode
 from modules.users.repositories import LoginCodeRepository
 from modules.users.services.auth_service import AuthMagicLinkService
-from modules.users.settings import ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
 
 
 @pytest.mark.unit
@@ -45,7 +45,7 @@ class TestVerifyLoginCode:
         token = await auth_service.verify_login_code(user.email, login_code.code)
 
         expected = (
-            datetime.datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
+            datetime.datetime.now(datetime.UTC) + settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
         ).replace(minute=0, second=0, microsecond=0)
         actual = token.expires_at.replace(minute=0, second=0, microsecond=0)
         assert actual == expected

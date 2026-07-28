@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     LOGIN_CODE_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(
         minutes=15
     )
+    ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(
+        seconds=ACCESS_TOKEN_LIFETIME_SECONDS
+    )
 
     # Set to True only when the app runs behind a trusted reverse proxy (nginx, etc.)
     # When False, X-Forwarded-For is ignored to prevent IP spoofing
