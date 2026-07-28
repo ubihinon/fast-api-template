@@ -4,7 +4,6 @@ from sqlalchemy import func, select
 
 from core.models.types import UserIdType
 from modules.users.models import LoginAttempt
-from modules.users.settings import users_settings
 from modules.users.repositories.base import BaseRepository
 
 
@@ -23,11 +22,13 @@ class LoginAttemptRepository(BaseRepository):
         await self.session.flush()
         return login_attempt
 
-    async def get_failed_attempts_count(self, user_id: UserIdType, ip_address: str) -> int:
+    async def get_failed_attempts_count(
+        self, user_id: UserIdType, ip_address: str, since: datetime.datetime
+    ) -> int:
         query = select(func.count()).select_from(LoginAttempt).where(
             LoginAttempt.user_id == user_id,
             LoginAttempt.is_correct.is_(False),
-            LoginAttempt.created_at >= (datetime.datetime.now(datetime.UTC) - users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA),
+            LoginAttempt.created_at >= since,
             LoginAttempt.ip_address == ip_address,
         )
         return await self.session.scalar(query) or 0
