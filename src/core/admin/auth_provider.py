@@ -62,6 +62,8 @@ class DatabaseAuthProvider(AuthProvider):
 
                 return response
 
+            except (LoginFailed, FormValidationError):
+                raise
             except Exception as e:
                 logger.error(f"[Admin] Login error: {e}")
                 await session.rollback()
@@ -93,6 +95,8 @@ class DatabaseAuthProvider(AuthProvider):
                 }
 
                 return True
+            except (LoginFailed, FormValidationError):
+                raise
             except Exception as e:
                 logger.error(f"[Admin] Authentication error: {e}")
                 await session.rollback()
