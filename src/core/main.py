@@ -36,11 +36,9 @@ if settings.SENTRY_DSN:
 listener = setup_logging()
 
 
-load_translations()
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    load_translations()
     logger.info("🚀 Starting FastAPI application...")
 
     if settings.GRAFANA_API_USERNAME == "" or settings.GRAFANA_API_PASSWORD == "":
