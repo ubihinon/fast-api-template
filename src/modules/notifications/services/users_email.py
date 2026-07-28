@@ -22,7 +22,7 @@ class UsersEmailService(BaseEmailService):
         payload = EmailPayload(
             recipients=[email],
             subject="Welcome to our service!",
-            body={'email': email, "action_url": "https://example.com/dashboard"},
+            body={'email': email},
         )
         return await self.send_email_async(payload, template_name="users/welcome.html")
 
@@ -38,6 +38,6 @@ class UsersEmailService(BaseEmailService):
         payload = EmailPayload(
             recipients=[email],
             subject="Welcome to our service!",
-            body={'email': email, "action_url": "https://example.com/dashboard"},
+            body={'email': email},
         )
         return self.send_email_background(payload, template_name="users/welcome.html")
