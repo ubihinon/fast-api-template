@@ -11,8 +11,10 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from core import admin
+from core.i18n import load_translations
 from core.limiter import limiter
 from core.logger_setup import setup_logging
+from core.middleware import LanguageMiddleware
 from core.settings import settings
 from modules.users.api.v1 import router as users_router
 
@@ -29,6 +31,9 @@ if settings.SENTRY_DSN:
     )
 
 listener = setup_logging()
+
+
+load_translations()
 
 
 @asynccontextmanager
@@ -53,6 +58,7 @@ app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=li
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 app.add_middleware(SlowAPIMiddleware)  # type: ignore[arg-type]
+app.add_middleware(LanguageMiddleware)
 app.add_middleware(
     CORSMiddleware,  # type: ignore[arg-type]
     allow_origins=settings.CORS_ORIGINS,
