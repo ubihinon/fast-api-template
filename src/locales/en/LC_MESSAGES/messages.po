@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-28 17:49+0400\n"
+"POT-Creation-Date: 2026-07-28 18:40+0400\n"
 "PO-Revision-Date: 2026-07-28 17:49+0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -17,6 +17,63 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+msgid "Login code"
+msgstr ""
+
+msgid "Welcome to our service!"
+msgstr ""
+
+msgid "Your Login Code"
+msgstr ""
+
+msgid "Authentication Code"
+msgstr ""
+
+msgid "Hello,"
+msgstr ""
+
+#, python-format
+msgid ""
+"You requested a login code for the account associated with "
+"<strong>%(email)s</strong>. Please use the following code to complete "
+"your sign-in process:"
+msgstr ""
+
+#, python-format
+msgid ""
+"This code is valid for <strong>%(code_expires_in)s</strong>. If it "
+"expires, you can request a new one on the login page."
+msgstr ""
+
+msgid ""
+"If you did not request this code, please ignore this email. No one can "
+"access your account without this code."
+msgstr ""
+
+msgid "All rights reserved."
+msgstr ""
+
+msgid "This is an automated message, please do not reply directly to this email."
+msgstr ""
+
+msgid "Welcome!"
+msgstr ""
+
+#, python-format
+msgid "Hello, %(email)s!"
+msgstr ""
+
+msgid ""
+"We are pleased to welcome you to our application. Your account has been "
+"successfully created."
+msgstr ""
+
+msgid "If you have any questions, simply reply to this email."
+msgstr ""
+
+msgid "This is an automated email, please do not reply to it."
+msgstr ""
 
 #, python-format
 msgid "User with email %(email)s not found"
