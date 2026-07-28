@@ -97,7 +97,7 @@ class BaseEmailService:
         recipients: list[str],
         subject: str,
         html: str,
-    ) -> None:
+    ) -> list:
         payload = EmailPayload(recipients=recipients, subject=subject, body=html)
         message = MessageSchema(
             subject=payload.subject,
@@ -107,13 +107,14 @@ class BaseEmailService:
         )
         self.background_tasks.add_task(self.fastmail.send_message, message)
         logger.info(f"Send email task '{subject}' added to background tasks FastAPI.")
+        return self.background_tasks.tasks
 
     def send_email_background(
         self,
         payload: EmailPayload,
         template_name: str | None = None,
         subtype: MessageType = MessageType.html
-    ) -> None:
+    ) -> list:
         """
         Send email in the background using FastAPI BackgroundTasks.
         Returns the response to the client immediately without waiting for the email to be sent.
@@ -125,3 +126,4 @@ class BaseEmailService:
             template_name=template_name
         )
         logger.info(f"Send email task '{payload.subject}' added to background tasks FastAPI.")
+        return self.background_tasks.tasks

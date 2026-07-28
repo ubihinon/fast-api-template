@@ -19,9 +19,12 @@ class TestSendLoginCodeEmail:
         assert result is True
 
     async def test_passes_correct_template(self, users_email_service: UsersEmailService):
-        await users_email_service.send_login_code_email(EMAIL, CODE, EXPIRES_IN)
-        _, kwargs = users_email_service.fastmail.send_message.call_args  # type: ignore[attr-defined]
-        assert kwargs.get("template_name") == "users/login_code.html"
+        from unittest.mock import patch
+        with patch("modules.notifications.services.users_email.render_email_template") as mock_render:
+            mock_render.return_value = "<html></html>"
+            await users_email_service.send_login_code_email(EMAIL, CODE, EXPIRES_IN)
+            template_name = mock_render.call_args[0][0]
+            assert template_name == "users/login_code.html"
 
     async def test_sends_to_correct_recipient(self, users_email_service: UsersEmailService):
         await users_email_service.send_login_code_email(EMAIL, CODE, EXPIRES_IN)
@@ -45,9 +48,12 @@ class TestSendWelcomeEmail:
         assert result is True
 
     async def test_passes_correct_template(self, users_email_service: UsersEmailService):
-        await users_email_service.send_welcome_email(EMAIL)
-        _, kwargs = users_email_service.fastmail.send_message.call_args  # type: ignore[attr-defined]
-        assert kwargs.get("template_name") == "users/welcome.html"
+        from unittest.mock import patch
+        with patch("modules.notifications.services.users_email.render_email_template") as mock_render:
+            mock_render.return_value = "<html></html>"
+            await users_email_service.send_welcome_email(EMAIL)
+            template_name = mock_render.call_args[0][0]
+            assert template_name == "users/welcome.html"
 
     async def test_sends_to_correct_recipient(self, users_email_service: UsersEmailService):
         await users_email_service.send_welcome_email(EMAIL)
