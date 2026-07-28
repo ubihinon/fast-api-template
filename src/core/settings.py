@@ -2,7 +2,6 @@ import os
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 
 class Settings(BaseSettings):
@@ -41,7 +40,6 @@ class Settings(BaseSettings):
     )
 
     SENTRY_DSN: str | None = None
-    SENTRY_INTEGRATIONS: list = Field(default_factory=lambda: [FastApiIntegration()])
     SENTRY_TRACES_SAMPLE_RATE: float = 1.0
     SENTRY_PROFILE_SESSION_SAMPLE_RATE: float = 1.0
 
