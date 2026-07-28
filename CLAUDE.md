@@ -85,6 +85,8 @@ Modules follow a layered pattern: **router → service → repository → model*
   - `settings.py` — Module-level constants (token/code TTLs, max login attempts)
 
 - `notifications/` — Email notifications via `aiosmtplib`; email tasks dispatched as Celery tasks through `UsersEmailService`
+  - `template_renderer.py` — renders Jinja2 HTML templates with Babel i18n support; Jinja2 `Environment` is cached per language; HTML templates use `{{ _("...") }}` for translatable strings
+  - `templates/users/` — HTML email templates (`login_code.html`, `welcome.html`); translatable strings use `{{ _("...") }}`, HTML structure stays outside translations
 
 ### CLI (`src/cli/`)
 Typer-based CLI with an `admin` sub-command group for admin user management.

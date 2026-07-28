@@ -279,19 +279,30 @@ The API supports multiple languages via Babel. The language is detected automati
 
 ### Workflow for adding new translatable strings
 
-1. Wrap the string in `_()`:
-   ```python
-   from core.i18n import _
-   raise SomeException(_("Your message here"))
-   ```
+**In Python code** — wrap the string in `_()`:
+```python
+from core.i18n import _
+raise SomeException(_("Your message here"))
+```
 
-2. Extract strings, update catalogs, translate, compile:
-   ```bash
-   .venv/bin/pybabel extract --no-location -F babel.cfg -o src/locales/messages.pot src/
-   .venv/bin/pybabel update -i src/locales/messages.pot -d src/locales
-   # Edit src/locales/ru/LC_MESSAGES/messages.po
-   .venv/bin/pybabel compile -d src/locales
-   ```
+**In HTML email templates** — use `{{ _("...") }}` directly in Jinja2 templates. Keep HTML structure outside of translated strings:
+```html
+<!-- correct: HTML outside, plain text inside _() -->
+{{ _("This code is valid for") }} <strong>{{ code_expires_in }}</strong>.
+
+<!-- wrong: HTML inside _() breaks autoescape and makes translation harder -->
+{% trans %}This code is valid for <strong>{{ code_expires_in }}</strong>.{% endtrans %}
+```
+
+Templates are rendered by `src/modules/notifications/template_renderer.py`, which sets up a Jinja2 `Environment` with Babel translations installed and caches it per language.
+
+After adding or changing strings, extract, update, translate, and compile:
+```bash
+.venv/bin/pybabel extract --no-location -F babel.cfg -o src/locales/messages.pot src/
+.venv/bin/pybabel update -i src/locales/messages.pot -d src/locales
+# Edit src/locales/ru/LC_MESSAGES/messages.po
+.venv/bin/pybabel compile -d src/locales
+```
 
 ### Adding a new language
 
