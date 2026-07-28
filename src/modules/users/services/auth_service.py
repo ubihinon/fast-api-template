@@ -9,6 +9,7 @@ from modules.notifications.services.users_email import UsersEmailService
 from modules.users.settings import users_settings
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.dtos.user import UserCreate
+from modules.users.models.user import User
 from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
@@ -47,7 +48,7 @@ class AuthMagicLinkService:
         self.user_manager = user_manager
         self.ip_address = ip_address
 
-    async def login(self, email: str):
+    async def login(self, email: str) -> User:
         try:
             user = await self.user_manager.get_by_email(email)
         except exceptions.UserNotExists:
@@ -121,7 +122,7 @@ class AuthMagicLinkService:
 
         return AccessTokenSchema.model_validate(access_token)
 
-    async def logout(self, user_id: int, token: str | None = None):
+    async def logout(self, user_id: int, token: str | None = None) -> None:
         if token:
             if not await self.access_token_repository.deactivate_token(user_id, token):
                 raise AccessTokenNotFound("Token not found")
