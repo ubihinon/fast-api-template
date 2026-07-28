@@ -26,7 +26,7 @@ def setup_logging():
     grafana_handler.setLevel(settings.LOG_LEVEL)
     grafana_handler.setFormatter(JsonFormatter())
 
-    # Handler для консоли (для локальной разработки)
+    # Console handler (for local development)
     console_handler = logging.StreamHandler()
     console_handler.setLevel(settings.LOG_LEVEL)
     console_formatter = logging.Formatter(
