@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from pydantic import EmailStr, SecretStr
@@ -24,7 +25,7 @@ class EmailSettings(BaseSettings):
     SUPPRESS_SEND: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=os.getenv("ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         extra="ignore"
     )
