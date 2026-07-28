@@ -74,7 +74,7 @@ class BaseEmailService:
         payload: EmailPayload,
         template_name: str | None = None,
         subtype: MessageType = MessageType.html
-    ):
+    ) -> None:
         """
         Send email in the background using FastAPI BackgroundTasks.
         Returns the response to the client immediately without waiting for the email to be sent.
@@ -86,4 +86,3 @@ class BaseEmailService:
             template_name=template_name
         )
         logger.info(f"Send email task '{payload.subject}' added to background tasks FastAPI.")
-        return self.background_tasks.tasks
