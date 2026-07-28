@@ -22,9 +22,6 @@ from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
-from modules.users.settings import (
-    ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +108,7 @@ class AuthMagicLinkService:
         access_token = await self.access_token_repository.create(
             token=secrets.token_urlsafe(48),
             user_id=user.id,
-            expires_at=datetime.datetime.now(datetime.UTC) + ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
 
         deactivated_code = await self.login_code_repository.deactivate(login_code.id)
