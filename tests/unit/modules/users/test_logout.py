@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.settings import settings
+from modules.users.settings import users_settings
 from modules.users.exceptions import AccessTokenNotFound
 from modules.users.models import AccessToken, User
 from modules.users.repositories import AccessTokenRepository
@@ -17,7 +17,7 @@ async def _create_token(session: AsyncSession, user: User, token: str = "test-to
     access_token = await repo.create(
         token=token,
         user_id=user.id,
-        expires_at=datetime.datetime.now(datetime.UTC) + settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+        expires_at=datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
     )
     await session.commit()
     return access_token

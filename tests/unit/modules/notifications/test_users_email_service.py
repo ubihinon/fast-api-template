@@ -3,12 +3,12 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from core.settings import settings
+from modules.users.settings import users_settings
 from modules.notifications.services.users_email import UsersEmailService
 
 EMAIL = "user@example.com"
 CODE = "123456"
-EXPIRES_IN = settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+EXPIRES_IN = users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 
 @pytest.mark.unit
