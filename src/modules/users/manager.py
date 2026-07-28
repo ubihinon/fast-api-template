@@ -26,4 +26,4 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, UserIdType]):
     async def on_after_request_verify(
         self, user: User, token: str, request: Request | None = None
     ):
-        logger.warning("Verification requested for user %s. Verification token: %s", user.id, token)
+        logger.warning("Verification requested for user %s.", user.id)
