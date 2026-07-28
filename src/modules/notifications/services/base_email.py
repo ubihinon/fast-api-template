@@ -76,8 +76,8 @@ class BaseEmailService:
         subtype: MessageType = MessageType.html
     ):
         """
-        Отправка email в фоновом режиме с использованием BackgroundTasks от FastAPI.
-        Позволяет немедленно вернуть ответ клиенту, не дожидаясь завершения отправки.
+        Send email in the background using FastAPI BackgroundTasks.
+        Returns the response to the client immediately without waiting for the email to be sent.
         """
         message = self._prepare_message(payload, subtype)
         self.background_tasks.add_task(
