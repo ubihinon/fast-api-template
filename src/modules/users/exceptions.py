@@ -15,9 +15,8 @@ class UserNotFoundException(Exception):
 
 
 class LoginCodeInvalidException(Exception):
-    def __init__(self, code: str):
-        self.code = code
-        super().__init__(f"Code '{self.code}' is invalid or expired or not found")
+    def __init__(self):
+        super().__init__("Code is invalid or expired")
 
 
 class LoginCodeNotFoundException(Exception):
