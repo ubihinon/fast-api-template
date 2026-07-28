@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from pydantic import Field
@@ -52,6 +53,11 @@ class Settings(BaseSettings):
 
     RATE_LIMIT_LOGIN: str = "10/minute"
     RATE_LIMIT_VERIFY: str = "10/minute"
+
+    MAX_LOGIN_ATTEMPTS: int = 5
+    LOGIN_CODE_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(
+        minutes=15
+    )
 
     # Set to True only when the app runs behind a trusted reverse proxy (nginx, etc.)
     # When False, X-Forwarded-For is ignored to prevent IP spoofing

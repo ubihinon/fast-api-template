@@ -3,9 +3,9 @@ import datetime
 from sqlalchemy import func, select
 
 from core.models.types import UserIdType
+from core.settings import settings
 from modules.users.models import LoginAttempt
 from modules.users.repositories.base import BaseRepository
-from modules.users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 
 class LoginAttemptRepository(BaseRepository):
@@ -27,7 +27,7 @@ class LoginAttemptRepository(BaseRepository):
         query = select(func.count()).select_from(LoginAttempt).where(
             LoginAttempt.user_id == user_id,
             LoginAttempt.is_correct.is_(False),
-            LoginAttempt.created_at >= (datetime.datetime.now(datetime.UTC) - LOGIN_CODE_EXPIRES_IN_TIMEDELTA),
+            LoginAttempt.created_at >= (datetime.datetime.now(datetime.UTC) - settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA),
             LoginAttempt.ip_address == ip_address,
         )
         return await self.session.scalar(query) or 0

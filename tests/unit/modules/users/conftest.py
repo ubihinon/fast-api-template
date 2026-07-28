@@ -7,6 +7,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
+from core.settings import settings
 from modules.users.manager import UserManager
 from modules.users.models import LoginCode, User
 from modules.users.repositories import (
@@ -16,7 +17,6 @@ from modules.users.repositories import (
     UserRepository,
 )
 from modules.users.services.auth_service import AuthMagicLinkService
-from modules.users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 
 def make_service(session: AsyncSession, ip_address: str = "127.0.0.1") -> AuthMagicLinkService:
@@ -76,7 +76,7 @@ async def login_code_factory():
             code=code,
             user_id=user_id,
             is_active=is_active,
-            expires_at=datetime.datetime.now(datetime.UTC) + LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
         session.add(login_code)
         await session.flush()

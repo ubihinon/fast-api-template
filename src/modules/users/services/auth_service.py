@@ -5,6 +5,7 @@ import secrets
 from fastapi_users import exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.settings import settings
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.dtos.user import UserCreate
@@ -23,8 +24,6 @@ from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
 from modules.users.settings import (
     ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
-    LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
-    MAX_LOGIN_ATTEMPTS,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,10 +68,12 @@ class AuthMagicLinkService:
         login_code = await self.login_code_repository.create(
             user_id=user.id,
             code=self.generate_code(),
-            expires_at=datetime.datetime.now(datetime.UTC) + LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
         logger.info(f"Login code sent to {user.email}")
-        self.email_service.send_login_code_email_task(user.email, login_code.code, LOGIN_CODE_EXPIRES_IN_TIMEDELTA)
+        self.email_service.send_login_code_email_task(
+            user.email, login_code.code, settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+        )
 
         await self.session.commit()
 
@@ -88,12 +89,12 @@ class AuthMagicLinkService:
             user.id, self.ip_address
         )
 
-        if failed_attempts_count >= MAX_LOGIN_ATTEMPTS:
+        if failed_attempts_count >= settings.MAX_LOGIN_ATTEMPTS:
             await self.login_attempt_repository.create(
                 user.id, user.email, code, False, ip_address=self.ip_address
             )
             raise LoginMaxNumberAttemptsException(
-                f"Maximum number of attempts exceeded ({MAX_LOGIN_ATTEMPTS}). Try again later"
+                f"Maximum number of attempts exceeded ({settings.MAX_LOGIN_ATTEMPTS}). Try again later"
             )
 
         login_code = await self.login_code_repository.get_active(code, user.id)
