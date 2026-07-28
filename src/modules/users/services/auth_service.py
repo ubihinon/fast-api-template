@@ -17,7 +17,6 @@ from modules.users.exceptions import (
     UserNotFoundException,
 )
 from modules.users.manager import UserManager
-from modules.users.models import User
 from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
@@ -40,6 +39,7 @@ class AuthMagicLinkService:
         login_attempt_repository: LoginAttemptRepository,
         access_token_repository: AccessTokenRepository,
         email_service: UsersEmailService,
+        user_manager: UserManager,
         ip_address: str,
     ):
         self.session = session
@@ -48,10 +48,8 @@ class AuthMagicLinkService:
         self.login_attempt_repository = login_attempt_repository
         self.access_token_repository = access_token_repository
         self.email_service = email_service
+        self.user_manager = user_manager
         self.ip_address = ip_address
-
-        user_db = User.get_db(user_repository.session)
-        self.user_manager = UserManager(user_db, email_service)
 
     async def login(self, email: str):
         try:
