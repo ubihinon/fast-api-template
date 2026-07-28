@@ -26,6 +26,7 @@ class ActiveAccessTokenDatabase(SQLAlchemyAccessTokenDatabase):
         statement = select(self.access_token_table).where(
             self.access_token_table.token == token,
             self.access_token_table.is_active.is_(True),
+            self.access_token_table.expires_at > datetime.datetime.now(datetime.UTC),
         )
         if max_age is not None:
             statement = statement.where(
