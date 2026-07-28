@@ -11,7 +11,7 @@ from modules.users.exceptions import (
 from modules.users.models import LoginCode
 from modules.users.repositories import LoginCodeRepository
 from modules.users.services.auth_service import AuthMagicLinkService
-from modules.users.settings import ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA, MAX_LOGIN_ATTEMPTS
+from modules.users.settings import ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
 
 
 @pytest.mark.unit
