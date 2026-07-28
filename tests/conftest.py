@@ -14,9 +14,7 @@ from modules.users.models import User, LoginCode, AccessToken  # noqa: F401
 # Database
 # ============================================================================
 
-# Use the test DB (PostgreSQL).
-# When running tests from the host, the Docker service is accessible via localhost.
-TEST_DATABASE_URL = settings.DATABASE_URL.replace("@postgres:", "@localhost:")
+TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
 
 @pytest_asyncio.fixture
