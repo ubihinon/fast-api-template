@@ -18,14 +18,15 @@ from modules.users.api.v1 import router as users_router
 
 logger = logging.getLogger(__name__)
 
-sentry_sdk.init(
-    dsn=settings.SENTRY_DSN,
-    environment=settings.ENVIRONMENT,
-    integrations=[FastApiIntegration()],
-    traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
-    profile_session_sample_rate=settings.SENTRY_PROFILE_SESSION_SAMPLE_RATE,
-    profile_lifecycle="trace",
-)
+if settings.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        integrations=[FastApiIntegration()],
+        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+        profile_session_sample_rate=settings.SENTRY_PROFILE_SESSION_SAMPLE_RATE,
+        profile_lifecycle="trace",
+    )
 
 listener = setup_logging()
 
