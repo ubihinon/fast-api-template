@@ -22,7 +22,7 @@ celery_app.conf.update(
 )
 
 # Auto-discover tasks from all registered apps
-celery_app.autodiscover_tasks(["core.tasks"])
+celery_app.autodiscover_tasks(["core.tasks", "modules.notifications"])
 
 # Configure Celery Beat schedule for periodic tasks
 
