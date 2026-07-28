@@ -7,6 +7,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.types import UserIdType
+from modules.users.manager import UserManager
 from modules.users.models import LoginCode, User
 from modules.users.repositories import (
     AccessTokenRepository,
@@ -21,6 +22,7 @@ from modules.users.settings import LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 def make_service(session: AsyncSession, ip_address: str = "127.0.0.1") -> AuthMagicLinkService:
     email_service = MagicMock()
     email_service.send_login_code_email_task = MagicMock(return_value=None)
+    user_manager = UserManager(User.get_db(session), email_service)
     return AuthMagicLinkService(
         session=session,
         user_repository=UserRepository(session),
@@ -28,6 +30,7 @@ def make_service(session: AsyncSession, ip_address: str = "127.0.0.1") -> AuthMa
         login_attempt_repository=LoginAttemptRepository(session),
         access_token_repository=AccessTokenRepository(session),
         email_service=email_service,
+        user_manager=user_manager,
         ip_address=ip_address,
     )
 
