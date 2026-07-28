@@ -5,6 +5,7 @@ import secrets
 from fastapi_users import exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.i18n import _
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.settings import users_settings
 from modules.users.dtos.auth import AccessTokenSchema
@@ -61,7 +62,7 @@ class AuthMagicLinkService:
             user = await self.user_manager.create(user_create)
 
         if not user.is_active:
-            raise AuthErrorException(f"User {email} is not active")
+            raise AuthErrorException(_("User %(email)s is not active") % {"email": email})
 
         await self.login_code_repository.deactivate_all_for_user(user.id)
         login_code = await self.login_code_repository.create(
@@ -94,7 +95,7 @@ class AuthMagicLinkService:
                 user.id, user.email, code, False, ip_address=self.ip_address
             )
             raise LoginMaxNumberAttemptsException(
-                f"Maximum number of attempts exceeded ({users_settings.MAX_LOGIN_ATTEMPTS}). Try again later"
+                _("Maximum number of attempts exceeded (%(max)s). Try again later") % {"max": users_settings.MAX_LOGIN_ATTEMPTS}
             )
 
         login_code = await self.login_code_repository.get_active(code, user.id)
@@ -127,7 +128,7 @@ class AuthMagicLinkService:
     async def logout(self, user_id: int, token: str | None = None) -> None:
         if token:
             if not await self.access_token_repository.deactivate_token(user_id, token):
-                raise AccessTokenNotFound("Token not found")
+                raise AccessTokenNotFound(_("Token not found"))
         else:
             await self.access_token_repository.deactivate_all_tokens(user_id)
         await self.session.commit()
