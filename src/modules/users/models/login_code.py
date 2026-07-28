@@ -12,7 +12,7 @@ class LoginCode(Base):
     __table_args__ = {"schema": "users", "extend_existing": True}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    code: Mapped[str] = mapped_column(String(6), unique=True, index=True, nullable=False)
+    code: Mapped[str] = mapped_column(String(6), index=True, nullable=False)
     user_id: Mapped[UserIdType] = mapped_column(
         Integer, ForeignKey("users.user.id", ondelete="cascade"), nullable=False
     )
