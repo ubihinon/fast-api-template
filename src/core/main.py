@@ -5,6 +5,7 @@ import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -17,7 +18,6 @@ from modules.users.api.v1 import router as users_router
 
 logger = logging.getLogger(__name__)
 
-from sentry_sdk.integrations.fastapi import FastApiIntegration
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
     environment=settings.ENVIRONMENT,
