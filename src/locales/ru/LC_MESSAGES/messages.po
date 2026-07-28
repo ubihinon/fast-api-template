@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-28 17:39+0400\n"
-"PO-Revision-Date: 2026-07-28 17:38+0400\n"
+"POT-Creation-Date: 2026-07-28 17:49+0400\n"
+"PO-Revision-Date: 2026-07-28 17:49+0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
 "Language-Team: ru <LL@li.org>\n"
@@ -19,35 +19,28 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: src/modules/users/exceptions.py:17
 #, python-format
 msgid "User with email %(email)s not found"
 msgstr "Пользователь с email %(email)s не найден"
 
-#: src/modules/users/exceptions.py:22
 msgid "Code is invalid or expired"
 msgstr "Код недействителен или истёк"
 
-#: src/modules/users/exceptions.py:28
 #, python-format
 msgid "Code with id '%(code_id)s' not found"
 msgstr "Код с id '%(code_id)s' не найден"
 
-#: src/modules/users/exceptions.py:33
 msgid "Maximum number of attempts exceeded"
 msgstr "Превышено максимальное количество попыток"
 
-#: src/modules/users/services/auth_service.py:65
 #, python-format
 msgid "User %(email)s is not active"
 msgstr "Пользователь %(email)s неактивен"
 
-#: src/modules/users/services/auth_service.py:98
 #, python-format
 msgid "Maximum number of attempts exceeded (%(max)s). Try again later"
 msgstr "Превышено максимальное количество попыток (%(max)s). Попробуйте позже"
 
-#: src/modules/users/services/auth_service.py:131
 msgid "Token not found"
 msgstr "Токен не найден"
 

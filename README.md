@@ -287,7 +287,7 @@ The API supports multiple languages via Babel. The language is detected automati
 
 2. Extract strings, update catalogs, translate, compile:
    ```bash
-   .venv/bin/pybabel extract -F babel.cfg -o src/locales/messages.pot src/
+   .venv/bin/pybabel extract --no-location -F babel.cfg -o src/locales/messages.pot src/
    .venv/bin/pybabel update -i src/locales/messages.pot -d src/locales
    # Edit src/locales/ru/LC_MESSAGES/messages.po
    .venv/bin/pybabel compile -d src/locales
