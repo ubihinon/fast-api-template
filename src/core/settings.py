@@ -1,4 +1,3 @@
-import datetime
 import os
 
 from pydantic import Field
@@ -17,12 +16,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@0.0.0.0:5432/postgres"
     SYNC_DATABASE_URL: str = "postgresql+psycopg2://postgres:postgres@0.0.0.0:5432/postgres"
     TEST_DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
-
-    BEARER_TRANSPORT_TOKEN_URL: str = "api/v1/auth/login"
-
-    ACCESS_TOKEN_LIFETIME_SECONDS: int = 3600
-    RESET_PASSWORD_TOKEN_SECRET: str = Field(min_length=32)
-    VERIFICATION_TOKEN_SECRET: str = Field(min_length=32)
 
     # Server settings
     SECRET_KEY: str = Field(min_length=32)
@@ -50,17 +43,6 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list[str] = []
     CORS_ALLOW_CREDENTIALS: bool = True
-
-    RATE_LIMIT_LOGIN: str = "10/minute"
-    RATE_LIMIT_VERIFY: str = "10/minute"
-
-    MAX_LOGIN_ATTEMPTS: int = 5
-    LOGIN_CODE_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(
-        minutes=15
-    )
-    ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(
-        seconds=ACCESS_TOKEN_LIFETIME_SECONDS
-    )
 
     # Set to True only when the app runs behind a trusted reverse proxy (nginx, etc.)
     # When False, X-Forwarded-For is ignored to prevent IP spoofing

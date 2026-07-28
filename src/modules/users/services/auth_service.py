@@ -5,8 +5,8 @@ import secrets
 from fastapi_users import exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.settings import settings
 from modules.notifications.services.users_email import UsersEmailService
+from modules.users.settings import users_settings
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.dtos.user import UserCreate
 from modules.users.exceptions import (
@@ -65,11 +65,11 @@ class AuthMagicLinkService:
         login_code = await self.login_code_repository.create(
             user_id=user.id,
             code=self.generate_code(),
-            expires_at=datetime.datetime.now(datetime.UTC) + settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
         logger.info(f"Login code sent to {user.email}")
         self.email_service.send_login_code_email_task(
-            user.email, login_code.code, settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+            user.email, login_code.code, users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
         )
 
         await self.session.commit()
@@ -86,12 +86,12 @@ class AuthMagicLinkService:
             user.id, self.ip_address
         )
 
-        if failed_attempts_count >= settings.MAX_LOGIN_ATTEMPTS:
+        if failed_attempts_count >= users_settings.MAX_LOGIN_ATTEMPTS:
             await self.login_attempt_repository.create(
                 user.id, user.email, code, False, ip_address=self.ip_address
             )
             raise LoginMaxNumberAttemptsException(
-                f"Maximum number of attempts exceeded ({settings.MAX_LOGIN_ATTEMPTS}). Try again later"
+                f"Maximum number of attempts exceeded ({users_settings.MAX_LOGIN_ATTEMPTS}). Try again later"
             )
 
         login_code = await self.login_code_repository.get_active(code, user.id)
@@ -108,7 +108,7 @@ class AuthMagicLinkService:
         access_token = await self.access_token_repository.create(
             token=secrets.token_urlsafe(48),
             user_id=user.id,
-            expires_at=datetime.datetime.now(datetime.UTC) + settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
 
         deactivated_code = await self.login_code_repository.deactivate(login_code.id)

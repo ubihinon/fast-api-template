@@ -4,8 +4,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from core.limiter import limiter
-from core.settings import settings
 from modules.users.api.dependencies import get_auth_magic_link_service
+from modules.users.settings import users_settings
 from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
@@ -31,7 +31,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/magic/login", response_model=LoginResponse, openapi_extra={"security": []})
-@limiter.limit(settings.RATE_LIMIT_LOGIN)
+@limiter.limit(users_settings.RATE_LIMIT_LOGIN)
 async def login_with_magic_link(
     request: Request,
     request_data: LoginWithEmailRequestSchema,
@@ -89,7 +89,7 @@ async def logout(
 
 
 @router.post("/magic/verify-login", openapi_extra={"security": []})
-@limiter.limit(settings.RATE_LIMIT_VERIFY)
+@limiter.limit(users_settings.RATE_LIMIT_VERIFY)
 async def verify_login(
     request: Request,
     request_data: VerifyLoginRequestSchema,
