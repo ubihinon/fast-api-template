@@ -78,10 +78,6 @@ class AuthMagicLinkService:
 
         return user
 
-    def generate_code(self):
-        random_number = secrets.randbelow(1000000)
-        return str(random_number).zfill(6)
-
     async def verify_login_code(self, email: str, code: str) -> AccessTokenSchema:
         try:
             user = await self.user_manager.get_by_email(email)
@@ -134,3 +130,8 @@ class AuthMagicLinkService:
         else:
             await self.access_token_repository.deactivate_all_tokens(user_id)
         await self.session.commit()
+
+    @staticmethod
+    def generate_code():
+        random_number = secrets.randbelow(1000000)
+        return str(random_number).zfill(6)
