@@ -105,7 +105,7 @@ class AuthMagicLinkService:
 
         await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address=self.ip_address)
 
-        logger.info(f"✓ Code {code} is correct for user_id={user.id}")
+        logger.info(f"✓ Code is correct for user_id={user.id}")
 
         access_token = await self.access_token_repository.create(
             token=secrets.token_urlsafe(48),
