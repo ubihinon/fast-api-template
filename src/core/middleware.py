@@ -1,10 +1,10 @@
-from collections.abc import Callable, Awaitable
+from collections.abc import Awaitable, Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from core.i18n import SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, current_language
+from core.i18n import DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, current_language
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):

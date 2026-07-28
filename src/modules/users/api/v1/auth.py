@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from core.limiter import limiter
 from modules.users.api.dependencies import get_auth_magic_link_service
-from modules.users.settings import users_settings
 from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
@@ -24,6 +23,7 @@ from modules.users.schemas.responses import (
     LoginResponse,
 )
 from modules.users.services.auth_service import AuthMagicLinkService
+from modules.users.settings import users_settings
 
 logger = logging.getLogger(__name__)
 

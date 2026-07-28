@@ -1,7 +1,6 @@
 from contextvars import ContextVar
-from pathlib import Path
-
 from gettext import NullTranslations
+from pathlib import Path
 
 from babel.support import Translations
 

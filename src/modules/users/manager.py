@@ -5,8 +5,8 @@ from fastapi_users import BaseUserManager, IntegerIDMixin
 
 from core.models.types import UserIdType
 from modules.notifications.services.users_email import UsersEmailService
-from modules.users.settings import users_settings
 from modules.users.models import User
+from modules.users.settings import users_settings
 
 logger = logging.getLogger(__name__)
 
