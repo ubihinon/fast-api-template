@@ -13,7 +13,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.users.models import LoginCode, User
-from core.settings import settings
+from modules.users.settings import users_settings
 
 LOGIN_URL = "/api/v1/auth/magic/login"
 VERIFY_URL = "/api/v1/auth/magic/verify-login"
@@ -97,7 +97,7 @@ class TestVerifyLogin:
             code=code,
             user_id=user.id,
             is_active=True,
-            expires_at=datetime.datetime.now(datetime.UTC) + settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
+            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
         db_session.add(login_code)
         await db_session.commit()
@@ -169,7 +169,7 @@ class TestVerifyLogin:
 
         user = await self._seed_user_with_code(db_session, "brute@example.com", "444444")
 
-        for _ in range(settings.MAX_LOGIN_ATTEMPTS):
+        for _ in range(users_settings.MAX_LOGIN_ATTEMPTS):
             db_session.add(LoginAttempt(
                 user_id=user.id,
                 email=user.email,

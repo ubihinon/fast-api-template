@@ -3,7 +3,7 @@ import datetime
 
 import pytest
 
-from core.settings import settings
+from modules.users.settings import users_settings
 from modules.users.exceptions import (
     LoginCodeInvalidException,
     LoginMaxNumberAttemptsException,
@@ -45,7 +45,7 @@ class TestVerifyLoginCode:
         token = await auth_service.verify_login_code(user.email, login_code.code)
 
         expected = (
-            datetime.datetime.now(datetime.UTC) + settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
+            datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
         ).replace(minute=0, second=0, microsecond=0)
         actual = token.expires_at.replace(minute=0, second=0, microsecond=0)
         assert actual == expected
@@ -123,7 +123,7 @@ class TestVerifyLoginCode:
         user = await user_factory(test_session)
         await login_code_factory(test_session, user.id, code="555555")
 
-        for _ in range(MAX_LOGIN_ATTEMPTS):
+        for _ in range(users_settings.MAX_LOGIN_ATTEMPTS):
             with pytest.raises(LoginCodeInvalidException):
                 await auth_service.verify_login_code(user.email, "000000")
 
