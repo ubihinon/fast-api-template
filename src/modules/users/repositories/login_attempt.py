@@ -23,9 +23,8 @@ class LoginAttemptRepository(BaseRepository):
         await self.session.flush()
         return login_attempt
 
-    async def get_failed_attempts_count(self, code: str, user_id: UserIdType, ip_address: str) -> int:
+    async def get_failed_attempts_count(self, user_id: UserIdType, ip_address: str) -> int:
         query = select(func.count()).select_from(LoginAttempt).where(
-            LoginAttempt.code_entered == code,
             LoginAttempt.user_id == user_id,
             LoginAttempt.is_correct.is_(False),
             LoginAttempt.created_at >= (datetime.datetime.now(datetime.UTC) - LOGIN_CODE_EXPIRES_IN_TIMEDELTA),
