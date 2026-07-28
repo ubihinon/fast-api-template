@@ -81,7 +81,8 @@ def custom_openapi():
     }
     for path in schema.get("paths", {}).values():
         for operation in path.values():
-            operation["security"] = [{"HTTPBearer": []}]
+            if "security" not in operation:
+                operation["security"] = [{"HTTPBearer": []}]
     app.openapi_schema = schema
     return schema
 

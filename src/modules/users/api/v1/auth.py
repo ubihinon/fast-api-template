@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/magic/login", response_model=LoginResponse)
+@router.post("/magic/login", response_model=LoginResponse, openapi_extra={"security": []})
 @limiter.limit(settings.RATE_LIMIT_LOGIN)
 async def login_with_magic_link(
     request: Request,
@@ -88,7 +88,7 @@ async def logout(
         )
 
 
-@router.post("/magic/verify-login")
+@router.post("/magic/verify-login", openapi_extra={"security": []})
 @limiter.limit(settings.RATE_LIMIT_VERIFY)
 async def verify_login(
     request: Request,
