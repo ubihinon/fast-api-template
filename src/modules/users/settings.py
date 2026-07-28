@@ -30,4 +30,4 @@ class UsersSettings(BaseSettings):
     )
 
 
-users_settings = UsersSettings()
+users_settings = UsersSettings()  # type: ignore[call-arg]
