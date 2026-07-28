@@ -21,7 +21,6 @@ class EmailSettings(BaseSettings):
 
     TEMPLATE_FOLDER: Path | None = Path(__file__).parent / "templates"
     # Disables sending emails for testing
-    # SUPPRESS_SEND: bool = True
     SUPPRESS_SEND: bool = False
 
     model_config = SettingsConfigDict(
