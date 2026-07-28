@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -16,14 +17,15 @@ from modules.users.api.v1 import router as users_router
 
 logger = logging.getLogger(__name__)
 
-# sentry_sdk.init(
-#     dsn=settings.SENTRY_DSN,
-#     environment=settings.ENVIRONMENT,
-#     integrations=settings.SENTRY_INTEGRATIONS,
-#     traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
-#     profile_session_sample_rate=settings.SENTRY_PROFILE_SESSION_SAMPLE_RATE,
-#     profile_lifecycle="trace",
-# )
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    environment=settings.ENVIRONMENT,
+    integrations=[FastApiIntegration()],
+    traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+    profile_session_sample_rate=settings.SENTRY_PROFILE_SESSION_SAMPLE_RATE,
+    profile_lifecycle="trace",
+)
 
 listener = setup_logging()
 
