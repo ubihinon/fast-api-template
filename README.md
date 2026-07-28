@@ -13,6 +13,7 @@ A production-ready FastAPI starter template with a complete authentication syste
 - **Observability** — Sentry error tracking, Grafana Loki log shipping, structured logging
 - **CORS** — configurable allowed origins
 - **CLI** — Typer-based admin management commands
+- **Internationalization (i18n)** — Babel-based translations with `Accept-Language` header and `?lang=` query param support
 - **Type-safe** — fully typed with mypy; linted with Ruff
 
 ## Tech Stack
@@ -29,6 +30,7 @@ A production-ready FastAPI starter template with a complete authentication syste
 | Admin | starlette-admin |
 | CLI | Typer |
 | Validation | Pydantic v2 |
+| i18n | Babel 2.18 |
 | Linting | Ruff |
 | Type checking | mypy |
 | Testing | pytest + pytest-asyncio + httpx |
@@ -44,6 +46,8 @@ A production-ready FastAPI starter template with a complete authentication syste
 │   │   ├── settings.py     # Pydantic-settings config (loaded from .env)
 │   │   ├── database.py     # Async + sync SQLAlchemy engines
 │   │   ├── celery_app.py   # Celery instance
+│   │   ├── i18n.py         # Babel i18n: load_translations(), _() function
+│   │   ├── middleware.py   # LanguageMiddleware (Accept-Language / ?lang=)
 │   │   ├── admin/          # starlette-admin setup and auth provider
 │   │   └── models/         # SQLAlchemy base model and mixins
 │   ├── modules/
@@ -58,6 +62,7 @@ A production-ready FastAPI starter template with a complete authentication syste
 │   ├── unit/               # Pure unit tests (mocked dependencies)
 │   └── integration/        # Full-stack tests against real PostgreSQL
 ├── alembic/                # DB migration scripts
+├── babel.cfg               # Babel extraction config
 ├── docker-compose.yml
 └── pyproject.toml
 ```
@@ -263,6 +268,39 @@ pytest tests/unit/modules/users/test_login.py::TestClassName::test_method_name
 ```bash
 .venv/bin/mypy src/
 ```
+
+## Internationalization (i18n)
+
+The API supports multiple languages via Babel. The language is detected automatically from the `Accept-Language` request header or the `?lang=` query parameter.
+
+**Supported languages:** `en` (default), `ru`
+
+**Translation files:** `src/locales/<lang>/LC_MESSAGES/messages.po`
+
+### Workflow for adding new translatable strings
+
+1. Wrap the string in `_()`:
+   ```python
+   from core.i18n import _
+   raise SomeException(_("Your message here"))
+   ```
+
+2. Extract strings, update catalogs, translate, compile:
+   ```bash
+   .venv/bin/pybabel extract -F babel.cfg -o src/locales/messages.pot src/
+   .venv/bin/pybabel update -i src/locales/messages.pot -d src/locales
+   # Edit src/locales/ru/LC_MESSAGES/messages.po
+   .venv/bin/pybabel compile -d src/locales
+   ```
+
+### Adding a new language
+
+```bash
+.venv/bin/pybabel init -i src/locales/messages.pot -d src/locales -l <lang_code>
+.venv/bin/pybabel compile -d src/locales
+```
+
+Then add the language code to `SUPPORTED_LANGUAGES` in `src/core/i18n.py`.
 
 ## Adding a New Module
 
