@@ -20,19 +20,19 @@ msgstr ""
 "Generated-By: Babel 2.18.0\n"
 
 msgid "Login code"
-msgstr ""
+msgstr "Код входа"
 
 msgid "Welcome to our service!"
-msgstr ""
+msgstr "Добро пожаловать в наш сервис!"
 
 msgid "Your Login Code"
-msgstr ""
+msgstr "Ваш код входа"
 
 msgid "Authentication Code"
-msgstr ""
+msgstr "Код аутентификации"
 
 msgid "Hello,"
-msgstr ""
+msgstr "Здравствуйте,"
 
 #, python-format
 msgid ""
@@ -40,41 +40,47 @@ msgid ""
 "<strong>%(email)s</strong>. Please use the following code to complete "
 "your sign-in process:"
 msgstr ""
+"Вы запросили код входа для аккаунта, привязанного к <strong>%(email)s</strong>. "
+"Используйте следующий код для завершения входа:"
 
 #, python-format
 msgid ""
 "This code is valid for <strong>%(code_expires_in)s</strong>. If it "
 "expires, you can request a new one on the login page."
 msgstr ""
+"Код действителен в течение <strong>%(code_expires_in)s</strong>. Если он истечёт, "
+"вы можете запросить новый на странице входа."
 
 msgid ""
 "If you did not request this code, please ignore this email. No one can "
 "access your account without this code."
 msgstr ""
+"Если вы не запрашивали этот код, просто проигнорируйте это письмо. "
+"Никто не сможет получить доступ к вашему аккаунту без него."
 
 msgid "All rights reserved."
-msgstr ""
+msgstr "Все права защищены."
 
 msgid "This is an automated message, please do not reply directly to this email."
-msgstr ""
+msgstr "Это автоматическое сообщение, пожалуйста, не отвечайте на него напрямую."
 
 msgid "Welcome!"
-msgstr ""
+msgstr "Добро пожаловать!"
 
 #, python-format
 msgid "Hello, %(email)s!"
-msgstr ""
+msgstr "Здравствуйте, %(email)s!"
 
 msgid ""
 "We are pleased to welcome you to our application. Your account has been "
 "successfully created."
-msgstr ""
+msgstr "Мы рады приветствовать вас в нашем приложении. Ваш аккаунт успешно создан."
 
 msgid "If you have any questions, simply reply to this email."
-msgstr ""
+msgstr "Если у вас есть вопросы, просто ответьте на это письмо."
 
 msgid "This is an automated email, please do not reply to it."
-msgstr ""
+msgstr "Это автоматическое письмо, пожалуйста, не отвечайте на него."
 
 #, python-format
 msgid "User with email %(email)s not found"
