@@ -5,7 +5,10 @@
       "Edit(./.env.template)",
       "Bash(.venv/bin/mypy src/ 2>&1)",
       "Bash(.venv/bin/ruff check src/ 2>&1)",
-      "Bash(.venv/bin/ruff check --fix src/)"
+      "Bash(.venv/bin/ruff check --fix src/)",
+      "Bash(.venv/bin/pybabel extract*)",
+      "Bash(.venv/bin/pybabel update*)",
+      "Bash(.venv/bin/pybabel compile*)"
     ],
     "deny": [
       "Read(./.env)",
