@@ -48,7 +48,7 @@ cd src && python -m cli.main admin --help
 **Internationalization (i18n):**
 ```bash
 # Extract translatable strings from source code
-.venv/bin/pybabel extract -F babel.cfg -o src/locales/messages.pot src/
+.venv/bin/pybabel extract --no-location -F babel.cfg -o src/locales/messages.pot src/
 
 # Update existing .po files with new strings
 .venv/bin/pybabel update -i src/locales/messages.pot -d src/locales
