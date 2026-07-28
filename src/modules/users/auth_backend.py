@@ -8,8 +8,8 @@ from fastapi_users.authentication.strategy.db import (
 )
 
 from modules.users.dependencies import get_access_token_db
-from modules.users.settings import users_settings
 from modules.users.models import AccessToken
+from modules.users.settings import users_settings
 
 
 def get_database_strategy(
