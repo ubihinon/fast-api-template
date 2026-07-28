@@ -54,9 +54,9 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 # ============================================================================
 
 @pytest.fixture
-def test_settings():
+def test_settings(monkeypatch):
     """Override settings for tests."""
-    settings.DEBUG = True
+    monkeypatch.setattr(settings, "DEBUG", True)
     return settings
 
 
