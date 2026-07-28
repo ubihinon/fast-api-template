@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-28 18:40+0400\n"
+"POT-Creation-Date: 2026-07-28 18:44+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,17 +32,16 @@ msgstr ""
 msgid "Hello,"
 msgstr ""
 
-#, python-format
-msgid ""
-"You requested a login code for the account associated with "
-"<strong>%(email)s</strong>. Please use the following code to complete "
-"your sign-in process:"
+msgid "You requested a login code for the account associated with"
 msgstr ""
 
-#, python-format
-msgid ""
-"This code is valid for <strong>%(code_expires_in)s</strong>. If it "
-"expires, you can request a new one on the login page."
+msgid "Please use the following code to complete your sign-in process:"
+msgstr ""
+
+msgid "This code is valid for"
+msgstr ""
+
+msgid "If it expires, you can request a new one on the login page."
 msgstr ""
 
 msgid ""
@@ -57,10 +56,6 @@ msgid "This is an automated message, please do not reply directly to this email.
 msgstr ""
 
 msgid "Welcome!"
-msgstr ""
-
-#, python-format
-msgid "Hello, %(email)s!"
 msgstr ""
 
 msgid ""
