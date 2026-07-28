@@ -7,10 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.i18n import _
 from modules.notifications.services.users_email import UsersEmailService
-from modules.users.settings import users_settings
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.dtos.user import UserCreate
-from modules.users.models.user import User
 from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
@@ -20,10 +18,12 @@ from modules.users.exceptions import (
     UserNotFoundException,
 )
 from modules.users.manager import UserManager
+from modules.users.models.user import User
 from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
+from modules.users.settings import users_settings
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +94,10 @@ class AuthMagicLinkService:
             await self.login_attempt_repository.create(
                 user.id, user.email, code, False, ip_address=self.ip_address
             )
-            raise LoginMaxNumberAttemptsException(
-                _("Maximum number of attempts exceeded (%(max)s). Try again later") % {"max": users_settings.MAX_LOGIN_ATTEMPTS}
-            )
+            msg = _("Maximum number of attempts exceeded (%(max)s). Try again later") % {
+                "max": users_settings.MAX_LOGIN_ATTEMPTS
+            }
+            raise LoginMaxNumberAttemptsException(msg)
 
         login_code = await self.login_code_repository.get_active(code, user.id)
         if not login_code:
