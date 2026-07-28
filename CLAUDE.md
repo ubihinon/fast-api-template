@@ -84,9 +84,13 @@ Typer-based CLI with an `admin` sub-command group for admin user management.
 |---|---|---|
 | `DATABASE_URL` | `postgresql+asyncpg://...` | Async DB connection |
 | `SYNC_DATABASE_URL` | `postgresql+psycopg2://...` | Sync DB (admin/alembic) |
+| `SECRET_KEY` | — (required, min 32 chars) | Session secret for admin panel |
+| `RESET_PASSWORD_TOKEN_SECRET` | — (required, min 32 chars) | fastapi-users token secret |
+| `VERIFICATION_TOKEN_SECRET` | — (required, min 32 chars) | fastapi-users token secret |
 | `CELERY_BROKER_URL` | `redis://localhost:6379/0` | Celery broker |
 | `CELERY_RESULT_BACKEND_URL` | `redis://localhost:6379/1` | Celery results |
-| `SECRET_KEY` | `1234567890` | Session secret for admin |
-| `ENABLE_ADMIN` | `True` | Mount starlette-admin at `/admin` |
 | `CELERY_ALWAYS_EAGER` | `False` | Set `True` in tests to run tasks synchronously |
-| `GRAFANA_LOKI_URL` | `` | Log shipping to Grafana Loki |
+| `ENABLE_ADMIN` | `True` | Mount starlette-admin at `/admin` |
+| `TRUST_PROXY_HEADERS` | `False` | Trust `X-Forwarded-For` (only behind a trusted reverse proxy) |
+| `GRAFANA_LOKI_URL` | `` | Log shipping to Grafana Loki (disabled when empty) |
+| `SENTRY_DSN` | `` | Sentry error tracking (disabled when empty) |
