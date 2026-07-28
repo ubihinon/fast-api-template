@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from core.settings import settings
 
 from core.models.base import Base
-from modules.users.models import User, LoginCode, AccessToken  # noqa: F401
+from modules.users.models import User, LoginCode, AccessToken, LoginAttempt  # noqa: F401
 
 # ============================================================================
 # Database
