@@ -79,13 +79,21 @@
         </div>
         <div class="content">
             <p>{{ _("Hello,") }}</p>
-            <p>{% trans email=email %}You requested a login code for the account associated with <strong>{{ email }}</strong>. Please use the following code to complete your sign-in process:{% endtrans %}</p>
+            <p>
+                {{ _("You requested a login code for the account associated with") }}
+                <strong>{{ email }}</strong>.
+                {{ _("Please use the following code to complete your sign-in process:") }}
+            </p>
 
             <div class="code-container">
                 <p class="code">{{ code }}</p>
             </div>
 
-            <p>{% trans code_expires_in=code_expires_in %}This code is valid for <strong>{{ code_expires_in }}</strong>. If it expires, you can request a new one on the login page.{% endtrans %}</p>
+            <p>
+                {{ _("This code is valid for") }}
+                <strong>{{ code_expires_in }}</strong>.
+                {{ _("If it expires, you can request a new one on the login page.") }}
+            </p>
 
             <div class="warning">
                 <p>{{ _("If you did not request this code, please ignore this email. No one can access your account without this code.") }}</p>
