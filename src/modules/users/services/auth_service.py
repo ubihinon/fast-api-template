@@ -124,7 +124,6 @@ class AuthMagicLinkService:
             raise LoginCodeNotFoundException(login_code.id)
 
         logger.info(f"✓ User {user.email} logged in via Magic Link")
-        logger.info(f"✓ Access token: {access_token.token[:10]}...")
 
         await self.session.commit()
 
