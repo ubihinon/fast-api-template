@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class UsersSettings(BaseSettings):
-    BEARER_TRANSPORT_TOKEN_URL: str = "api/v1/auth/login"
+    BEARER_TRANSPORT_TOKEN_URL: str = "api/v1/auth/magic/login"
 
     ACCESS_TOKEN_LIFETIME_SECONDS: int = 3600
     RESET_PASSWORD_TOKEN_SECRET: str = Field(min_length=32)
