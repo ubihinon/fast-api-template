@@ -1,86 +1,138 @@
 """Shared fixtures for users unit tests."""
 import datetime
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models.types import UserIdType
-from modules.users.settings import users_settings
-from modules.users.manager import UserManager
-from modules.users.models import LoginCode, User
-from modules.users.repositories import (
-    AccessTokenRepository,
-    LoginAttemptRepository,
-    LoginCodeRepository,
-    UserRepository,
-)
+from modules.users.models import AccessToken, LoginCode, User
 from modules.users.services.auth_service import AuthMagicLinkService
+from modules.users.settings import users_settings
 
 
-def make_service(session: AsyncSession, ip_address: str = "127.0.0.1") -> AuthMagicLinkService:
-    email_service = MagicMock()
-    email_service.send_login_code_email_task = MagicMock(return_value=None)
-    user_manager = UserManager(User.get_db(session), email_service)
-    return AuthMagicLinkService(
-        session=session,
-        user_repository=UserRepository(session),
-        login_code_repository=LoginCodeRepository(session),
-        login_attempt_repository=LoginAttemptRepository(session),
-        access_token_repository=AccessTokenRepository(session),
-        email_service=email_service,
-        user_manager=user_manager,
-        ip_address=ip_address,
-    )
+# ---------------------------------------------------------------------------
+# Builder helpers — callable fixtures so tests can create objects with custom args
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def make_user():
+    def _make(
+        id: int = 1,
+        email: str = "test@example.com",
+        is_active: bool = True,
+    ) -> MagicMock:
+        user = MagicMock(spec=User)
+        user.id = id
+        user.email = email
+        user.is_active = is_active
+        return user
+
+    return _make
 
 
 @pytest.fixture
-def auth_service(test_session: AsyncSession) -> AuthMagicLinkService:
-    return make_service(test_session)
-
-
-@pytest_asyncio.fixture
-async def user_factory():
-    async def _create_user(
-        session: AsyncSession,
-        email: str = "test@example.com",
-        is_active: bool = True,
-        is_superuser: bool = False,
-    ) -> User:
-        user = User(
-            email=email,
-            hashed_password="password123",
-            is_active=is_active,
-            is_superuser=is_superuser,
-        )
-        session.add(user)
-        await session.flush()
-        await session.refresh(user)
-        return user
-
-    return _create_user
-
-
-@pytest_asyncio.fixture
-async def login_code_factory():
-    """Factory for creating test login codes."""
-
-    async def _create_login_code(
-        session: AsyncSession,
-        user_id: UserIdType,
+def make_login_code():
+    def _make(
+        id: int = 1,
         code: str = "123456",
+        user_id: int = 1,
         is_active: bool = True,
-    ) -> LoginCode:
-        login_code = LoginCode(
-            code=code,
-            user_id=user_id,
-            is_active=is_active,
-            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
-        )
-        session.add(login_code)
-        await session.flush()
-        await session.refresh(login_code)
-        return login_code
+    ) -> MagicMock:
+        lc = MagicMock(spec=LoginCode)
+        lc.id = id
+        lc.code = code
+        lc.user_id = user_id
+        lc.is_active = is_active
+        return lc
 
-    return _create_login_code
+    return _make
+
+
+@pytest.fixture
+def make_access_token():
+    def _make(
+        id: int = 1,
+        token: str = "test-access-token",
+        user_id: int = 1,
+        is_active: bool = True,
+    ) -> MagicMock:
+        at = MagicMock(spec=AccessToken)
+        at.id = id
+        at.token = token
+        at.user_id = user_id
+        at.is_active = is_active
+        at.created_at = datetime.datetime.now(datetime.UTC)
+        at.expires_at = (
+            datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
+        )
+        return at
+
+    return _make
+
+
+# ---------------------------------------------------------------------------
+# Mocked dependencies
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def mock_session():
+    return AsyncMock()
+
+
+@pytest.fixture
+def mock_user_manager():
+    return AsyncMock()
+
+
+@pytest.fixture
+def mock_user_repo():
+    return AsyncMock()
+
+
+@pytest.fixture
+def mock_login_code_repo():
+    return AsyncMock()
+
+
+@pytest.fixture
+def mock_login_attempt_repo():
+    repo = AsyncMock()
+    repo.get_failed_attempts_count.return_value = 0
+    return repo
+
+
+@pytest.fixture
+def mock_access_token_repo():
+    return AsyncMock()
+
+
+@pytest.fixture
+def mock_email_service():
+    svc = MagicMock()
+    svc.send_login_code_email_task = MagicMock(return_value=None)
+    return svc
+
+
+# ---------------------------------------------------------------------------
+# Service under test — wired with all mocked dependencies
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def auth_service(
+    mock_session,
+    mock_user_repo,
+    mock_login_code_repo,
+    mock_login_attempt_repo,
+    mock_access_token_repo,
+    mock_email_service,
+    mock_user_manager,
+) -> AuthMagicLinkService:
+    return AuthMagicLinkService(
+        session=mock_session,
+        user_repository=mock_user_repo,
+        login_code_repository=mock_login_code_repo,
+        login_attempt_repository=mock_login_attempt_repo,
+        access_token_repository=mock_access_token_repo,
+        email_service=mock_email_service,
+        user_manager=mock_user_manager,
+        ip_address="127.0.0.1",
+    )
