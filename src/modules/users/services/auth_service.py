@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.i18n import _
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
-from modules.users.models.access_token import AccessToken as AccessTokenModel
 from modules.users.dtos.user import UserCreate
 from modules.users.exceptions import (
     AccessTokenNotFound,
@@ -18,6 +17,7 @@ from modules.users.exceptions import (
     UserNotFoundException,
 )
 from modules.users.manager import UserManager
+from modules.users.models.access_token import AccessToken as AccessTokenModel
 from modules.users.models.user import User
 from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
@@ -106,7 +106,9 @@ class AuthMagicLinkService:
             await self.session.commit()
             raise LoginCodeInvalidException()
 
-        await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address=self.ip_address, user_agent=self.user_agent)
+        await self.login_attempt_repository.create(
+            user.id, user.email, code, True, ip_address=self.ip_address, user_agent=self.user_agent
+        )
 
         logger.info(f"✓ Code is correct for user_id={user.id}")
 
