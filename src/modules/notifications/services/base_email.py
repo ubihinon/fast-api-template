@@ -75,7 +75,7 @@ class BaseEmailService:
         subject: str,
         html: str,
     ) -> bool:
-        payload = EmailPayload(recipients=recipients, subject=subject, body=html)
+        payload = EmailPayload(recipients=cast(list[NameEmail | str], recipients), subject=subject, body=html)
         message = MessageSchema(
             subject=payload.subject,
             recipients=payload.recipients,  # type: ignore[arg-type]
@@ -98,7 +98,7 @@ class BaseEmailService:
         subject: str,
         html: str,
     ) -> list:
-        payload = EmailPayload(recipients=recipients, subject=subject, body=html)
+        payload = EmailPayload(recipients=cast(list[NameEmail | str], recipients), subject=subject, body=html)
         message = MessageSchema(
             subject=payload.subject,
             recipients=payload.recipients,  # type: ignore[arg-type]

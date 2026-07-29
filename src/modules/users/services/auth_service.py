@@ -9,6 +9,7 @@ from core.i18n import _
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.dtos.user import UserCreate
+from modules.users.schemas.responses import SessionSchema
 from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
@@ -17,7 +18,6 @@ from modules.users.exceptions import (
     UserNotFoundException,
 )
 from modules.users.manager import UserManager
-from modules.users.models.access_token import AccessToken as AccessTokenModel
 from modules.users.models.user import User
 from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
@@ -125,8 +125,9 @@ class AuthMagicLinkService:
 
         return AccessTokenSchema.model_validate(access_token)
 
-    async def get_sessions(self, user_id: int) -> list[AccessTokenModel]:
-        return await self.access_token_repository.get_active_sessions(user_id)
+    async def get_sessions(self, user_id: int) -> list[SessionSchema]:
+        tokens = await self.access_token_repository.get_active_sessions(user_id)
+        return [SessionSchema.model_validate(token) for token in tokens]
 
     async def logout(self, user_id: int, token: str | None = None) -> None:
         if token:
