@@ -23,6 +23,9 @@ class TestLogout:
         auth_service: AuthMagicLinkService,
         mock_access_token_repo,
     ):
+        # Service-level behavior: token=None deactivates all sessions.
+        # This path is NOT reachable via the API endpoint — the endpoint
+        # requires a valid Bearer token and returns HTTP 400 otherwise.
         await auth_service.logout(user_id=1)
 
         mock_access_token_repo.deactivate_all_tokens.assert_awaited_once_with(1)
