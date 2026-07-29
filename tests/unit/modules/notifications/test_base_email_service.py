@@ -13,7 +13,7 @@ class TestPrepareMessage:
         payload = make_payload(subject="Hello", recipients=["a@b.com"])
         msg = users_email_service._prepare_message(payload)
         assert msg.subject == "Hello"
-        assert "a@b.com" in str(msg.recipients)
+        assert any(r.email == "a@b.com" for r in msg.recipients)
 
     def test_optional_fields_default_to_empty(self, users_email_service: UsersEmailService, make_payload):
         payload = make_payload()
@@ -30,9 +30,9 @@ class TestPrepareMessage:
             reply_to=["reply@example.com"],
         )
         msg = users_email_service._prepare_message(payload)
-        assert "cc@example.com" in str(msg.cc)
-        assert "bcc@example.com" in str(msg.bcc)
-        assert "reply@example.com" in str(msg.reply_to)
+        assert any(r.email == "cc@example.com" for r in msg.cc)
+        assert any(r.email == "bcc@example.com" for r in msg.bcc)
+        assert any(r.email == "reply@example.com" for r in msg.reply_to)
 
 
 @pytest.mark.unit

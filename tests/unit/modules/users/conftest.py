@@ -3,8 +3,15 @@ import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from modules.notifications.services.users_email import UsersEmailService
+from modules.users.manager import UserManager
 from modules.users.models import AccessToken, LoginCode, User
+from modules.users.repositories import AccessTokenRepository
+from modules.users.repositories.login_attempt import LoginAttemptRepository
+from modules.users.repositories.login_code import LoginCodeRepository
+from modules.users.repositories.user import UserRepository
 from modules.users.services.auth_service import AuthMagicLinkService
 from modules.users.settings import users_settings
 
@@ -75,39 +82,39 @@ def make_access_token():
 
 @pytest.fixture
 def mock_session():
-    return AsyncMock()
+    return AsyncMock(spec=AsyncSession)
 
 
 @pytest.fixture
 def mock_user_manager():
-    return AsyncMock()
+    return AsyncMock(spec=UserManager)
 
 
 @pytest.fixture
 def mock_user_repo():
-    return AsyncMock()
+    return AsyncMock(spec=UserRepository)
 
 
 @pytest.fixture
 def mock_login_code_repo():
-    return AsyncMock()
+    return AsyncMock(spec=LoginCodeRepository)
 
 
 @pytest.fixture
 def mock_login_attempt_repo():
-    repo = AsyncMock()
+    repo = AsyncMock(spec=LoginAttemptRepository)
     repo.get_failed_attempts_count.return_value = 0
     return repo
 
 
 @pytest.fixture
 def mock_access_token_repo():
-    return AsyncMock()
+    return AsyncMock(spec=AccessTokenRepository)
 
 
 @pytest.fixture
 def mock_email_service():
-    svc = MagicMock()
+    svc = MagicMock(spec=UsersEmailService)
     svc.send_login_code_email_task = MagicMock(return_value=None)
     return svc
 

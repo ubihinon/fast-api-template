@@ -134,4 +134,9 @@ async def client(
 async def db_session(integration_session_factory) -> AsyncGenerator[AsyncSession, None]:
     """Session for inserting test data directly into the DB."""
     async with integration_session_factory() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
