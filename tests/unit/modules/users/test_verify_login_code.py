@@ -31,8 +31,7 @@ class TestVerifyLoginCode:
     ):
         mock_user_manager.get_by_email.return_value = make_user()
         mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
-        mock_login_code_repo.get_active.return_value = make_login_code()
-        mock_login_code_repo.deactivate.return_value = make_login_code()
+        mock_login_code_repo.get_active_and_deactivate.return_value = make_login_code()
         mock_access_token_repo.create.return_value = make_access_token()
 
         token = await auth_service.verify_login_code(EMAIL, "123456")
@@ -53,8 +52,7 @@ class TestVerifyLoginCode:
     ):
         mock_user_manager.get_by_email.return_value = make_user()
         mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
-        mock_login_code_repo.get_active.return_value = make_login_code()
-        mock_login_code_repo.deactivate.return_value = make_login_code()
+        mock_login_code_repo.get_active_and_deactivate.return_value = make_login_code()
         mock_access_token_repo.create.return_value = make_access_token()
 
         before = datetime.datetime.now(datetime.UTC)
@@ -87,7 +85,7 @@ class TestVerifyLoginCode:
     ):
         mock_user_manager.get_by_email.return_value = make_user()
         mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
-        mock_login_code_repo.get_active.return_value = None
+        mock_login_code_repo.get_active_and_deactivate.return_value = None
 
         with pytest.raises(LoginCodeInvalidException):
             await auth_service.verify_login_code(EMAIL, "999999")
@@ -106,7 +104,7 @@ class TestVerifyLoginCode:
         # Both cases are indistinguishable at the service layer.
         mock_user_manager.get_by_email.return_value = make_user()
         mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
-        mock_login_code_repo.get_active.return_value = None
+        mock_login_code_repo.get_active_and_deactivate.return_value = None
 
         with pytest.raises(LoginCodeInvalidException):
             await auth_service.verify_login_code(EMAIL, code)
@@ -125,13 +123,12 @@ class TestVerifyLoginCode:
         login_code = make_login_code(id=42, code="444444")
         mock_user_manager.get_by_email.return_value = make_user()
         mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
-        mock_login_code_repo.get_active.return_value = login_code
-        mock_login_code_repo.deactivate.return_value = login_code
+        mock_login_code_repo.get_active_and_deactivate.return_value = login_code
         mock_access_token_repo.create.return_value = make_access_token()
 
         await auth_service.verify_login_code(EMAIL, "444444")
 
-        mock_login_code_repo.deactivate.assert_awaited_once_with(42)
+        mock_login_code_repo.get_active_and_deactivate.assert_awaited_once_with("444444", make_user().id)
 
     async def test_max_attempts_exceeded_raises(
         self,
@@ -159,8 +156,7 @@ class TestVerifyLoginCode:
     ):
         mock_user_manager.get_by_email.return_value = make_user()
         mock_login_attempt_repo.get_failed_attempts_count.side_effect = [0, 1]
-        mock_login_code_repo.get_active.side_effect = [None, make_login_code(code="666666")]
-        mock_login_code_repo.deactivate.return_value = make_login_code()
+        mock_login_code_repo.get_active_and_deactivate.side_effect = [None, make_login_code(code="666666")]
         mock_access_token_repo.create.return_value = make_access_token()
 
         with pytest.raises(LoginCodeInvalidException):
