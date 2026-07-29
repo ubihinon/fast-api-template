@@ -1,23 +1,6 @@
 """Pytest configuration and fixtures."""
 import pytest
 
-from core.settings import settings
-
-
-# ============================================================================
-# Settings
-# ============================================================================
-
-@pytest.fixture
-def test_settings(monkeypatch):
-    """Override settings for tests."""
-    monkeypatch.setattr(settings, "DEBUG", True)
-    return settings
-
-
-# ============================================================================
-# Markers
-# ============================================================================
 
 def pytest_configure(config):
     """Register custom markers."""

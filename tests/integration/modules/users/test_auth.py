@@ -189,10 +189,10 @@ class TestLogout:
         assert response.status_code == 200
         LoginResponse.model_validate(response.json())
 
-    async def test_logout_without_authorization_header_logs_out_all(
+    async def test_logout_invalidates_token_and_blocks_subsequent_requests(
         self, client: AsyncClient, existing_user: User, auth_headers: dict
     ):
-        """Logout without a specific token header revokes all tokens for the user."""
+        """Logout with a token revokes it so subsequent requests with the same token return 401."""
         me_resp = await client.get("/api/v1/users/me", headers=auth_headers)
         assert me_resp.status_code == 200
 
