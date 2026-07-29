@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, and_
 
 from core.models.types import UserIdType
 from modules.users.models import LoginCode
@@ -18,20 +18,18 @@ class LoginCodeRepository(BaseRepository):
         await self.session.flush()
         return login_code
 
-    async def get_active(self, code: str, user_id: UserIdType) -> LoginCode | None:
-        query = select(LoginCode).where(
-            LoginCode.code == code,
-            LoginCode.user_id == user_id,
-            LoginCode.is_active.is_(True),
-            LoginCode.expires_at > datetime.datetime.now(datetime.UTC)
-        )
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none()
-
-    async def deactivate(self, code_id: int) -> LoginCode | None:
+    async def get_active_and_deactivate(self, code: str, user_id: UserIdType) -> LoginCode | None:
+        """Atomically find an active, non-expired code and deactivate it in one query."""
         result = await self.session.execute(
             update(LoginCode)
-            .where(LoginCode.id == code_id)
+            .where(
+                and_(
+                    LoginCode.code == code,
+                    LoginCode.user_id == user_id,
+                    LoginCode.is_active.is_(True),
+                    LoginCode.expires_at > datetime.datetime.now(datetime.UTC),
+                )
+            )
             .values(is_active=False)
             .returning(LoginCode)
         )

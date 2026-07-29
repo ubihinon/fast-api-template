@@ -13,7 +13,6 @@ from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
     LoginCodeInvalidException,
-    LoginCodeNotFoundException,
     LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
@@ -96,7 +95,7 @@ class AuthMagicLinkService:
             }
             raise LoginMaxNumberAttemptsException(msg)
 
-        login_code = await self.login_code_repository.get_active(code, user.id)
+        login_code = await self.login_code_repository.get_active_and_deactivate(code, user.id)
         if not login_code:
             await self.login_attempt_repository.create(
                 user.id, user.email, code, False, ip_address=self.ip_address
@@ -113,10 +112,6 @@ class AuthMagicLinkService:
             user_id=user.id,
             expires_at=datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
         )
-
-        deactivated_code = await self.login_code_repository.deactivate(login_code.id)
-        if deactivated_code is None:
-            raise LoginCodeNotFoundException(login_code.id)
 
         logger.info(f"✓ User {user.email} logged in via Magic Link")
 
