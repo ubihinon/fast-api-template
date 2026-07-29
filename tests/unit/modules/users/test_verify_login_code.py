@@ -2,32 +2,40 @@
 import datetime
 
 import pytest
+from fastapi_users import exceptions as fu_exc
 
-from modules.users.settings import users_settings
 from modules.users.exceptions import (
     LoginCodeInvalidException,
     LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
-from modules.users.models import LoginCode
-from modules.users.repositories import LoginCodeRepository
 from modules.users.services.auth_service import AuthMagicLinkService
+from modules.users.settings import users_settings
+
+
+EMAIL = "test@example.com"
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 class TestVerifyLoginCode:
     async def test_valid_code_returns_active_token(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
-        login_code_factory,
+        mock_user_manager,
+        mock_login_code_repo,
+        mock_login_attempt_repo,
+        mock_access_token_repo,
+        make_user,
+        make_login_code,
+        make_access_token,
     ):
-        user = await user_factory(test_session)
-        login_code = await login_code_factory(test_session, user.id)
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
+        mock_login_code_repo.get_active.return_value = make_login_code()
+        mock_login_code_repo.deactivate.return_value = make_login_code()
+        mock_access_token_repo.create.return_value = make_access_token()
 
-        token = await auth_service.verify_login_code(user.email, login_code.code)
+        token = await auth_service.verify_login_code(EMAIL, "123456")
 
         assert token.token is not None
         assert token.is_active is True
@@ -35,14 +43,21 @@ class TestVerifyLoginCode:
     async def test_valid_code_token_expires_in_one_hour(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
-        login_code_factory,
+        mock_user_manager,
+        mock_login_code_repo,
+        mock_login_attempt_repo,
+        mock_access_token_repo,
+        make_user,
+        make_login_code,
+        make_access_token,
     ):
-        user = await user_factory(test_session)
-        login_code = await login_code_factory(test_session, user.id)
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
+        mock_login_code_repo.get_active.return_value = make_login_code()
+        mock_login_code_repo.deactivate.return_value = make_login_code()
+        mock_access_token_repo.create.return_value = make_access_token()
 
-        token = await auth_service.verify_login_code(user.email, login_code.code)
+        token = await auth_service.verify_login_code(EMAIL, "123456")
 
         expected = (
             datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
@@ -50,98 +65,115 @@ class TestVerifyLoginCode:
         actual = token.expires_at.replace(minute=0, second=0, microsecond=0)
         assert actual == expected
 
-    async def test_nonexistent_email_raises(self, auth_service: AuthMagicLinkService):
+    async def test_nonexistent_email_raises(
+        self,
+        auth_service: AuthMagicLinkService,
+        mock_user_manager,
+    ):
+        mock_user_manager.get_by_email.side_effect = fu_exc.UserNotExists()
+
         with pytest.raises(UserNotFoundException):
             await auth_service.verify_login_code("ghost@example.com", "123456")
 
     async def test_wrong_code_raises(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
-        login_code_factory,
+        mock_user_manager,
+        mock_login_code_repo,
+        mock_login_attempt_repo,
+        make_user,
     ):
-        user = await user_factory(test_session)
-        await login_code_factory(test_session, user.id, code="111111")
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
+        mock_login_code_repo.get_active.return_value = None
 
         with pytest.raises(LoginCodeInvalidException):
-            await auth_service.verify_login_code(user.email, "999999")
+            await auth_service.verify_login_code(EMAIL, "999999")
 
     async def test_inactive_code_raises(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
-        login_code_factory,
+        mock_user_manager,
+        mock_login_code_repo,
+        mock_login_attempt_repo,
+        make_user,
     ):
-        user = await user_factory(test_session)
-        await login_code_factory(test_session, user.id, code="222222", is_active=False)
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
+        mock_login_code_repo.get_active.return_value = None  # repo filters out inactive codes
 
         with pytest.raises(LoginCodeInvalidException):
-            await auth_service.verify_login_code(user.email, "222222")
+            await auth_service.verify_login_code(EMAIL, "222222")
 
     async def test_expired_code_raises(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
+        mock_user_manager,
+        mock_login_code_repo,
+        mock_login_attempt_repo,
+        make_user,
     ):
-        user = await user_factory(test_session)
-        test_session.add(LoginCode(
-            code="333333",
-            user_id=user.id,
-            is_active=True,
-            expires_at=datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=1),
-        ))
-        await test_session.commit()
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
+        mock_login_code_repo.get_active.return_value = None  # repo filters out expired codes
 
         with pytest.raises(LoginCodeInvalidException):
-            await auth_service.verify_login_code(user.email, "333333")
+            await auth_service.verify_login_code(EMAIL, "333333")
 
     async def test_code_deactivated_after_use(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
-        login_code_factory,
+        mock_user_manager,
+        mock_login_code_repo,
+        mock_login_attempt_repo,
+        mock_access_token_repo,
+        make_user,
+        make_login_code,
+        make_access_token,
     ):
-        user = await user_factory(test_session)
-        await login_code_factory(test_session, user.id, code="444444")
+        login_code = make_login_code(id=42, code="444444")
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
+        mock_login_code_repo.get_active.return_value = login_code
+        mock_login_code_repo.deactivate.return_value = login_code
+        mock_access_token_repo.create.return_value = make_access_token()
 
-        await auth_service.verify_login_code(user.email, "444444")
+        await auth_service.verify_login_code(EMAIL, "444444")
 
-        active = await LoginCodeRepository(test_session).get_active("444444", user.id)
-        assert active is None
+        mock_login_code_repo.deactivate.assert_awaited_once_with(42)
 
     async def test_max_attempts_exceeded_raises(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
-        login_code_factory,
+        mock_user_manager,
+        mock_login_attempt_repo,
+        make_user,
     ):
-        user = await user_factory(test_session)
-        await login_code_factory(test_session, user.id, code="555555")
-
-        for _ in range(users_settings.MAX_LOGIN_ATTEMPTS):
-            with pytest.raises(LoginCodeInvalidException):
-                await auth_service.verify_login_code(user.email, "000000")
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.return_value = users_settings.MAX_LOGIN_ATTEMPTS
 
         with pytest.raises(LoginMaxNumberAttemptsException):
-            await auth_service.verify_login_code(user.email, "000000")
+            await auth_service.verify_login_code(EMAIL, "000000")
 
     async def test_one_failure_does_not_block_correct_code(
         self,
         auth_service: AuthMagicLinkService,
-        test_session,
-        user_factory,
-        login_code_factory,
+        mock_user_manager,
+        mock_login_code_repo,
+        mock_login_attempt_repo,
+        mock_access_token_repo,
+        make_user,
+        make_login_code,
+        make_access_token,
     ):
-        user = await user_factory(test_session)
-        await login_code_factory(test_session, user.id, code="666666")
+        mock_user_manager.get_by_email.return_value = make_user()
+        mock_login_attempt_repo.get_failed_attempts_count.side_effect = [0, 1]
+        mock_login_code_repo.get_active.side_effect = [None, make_login_code(code="666666")]
+        mock_login_code_repo.deactivate.return_value = make_login_code()
+        mock_access_token_repo.create.return_value = make_access_token()
 
         with pytest.raises(LoginCodeInvalidException):
-            await auth_service.verify_login_code(user.email, "000000")
+            await auth_service.verify_login_code(EMAIL, "000000")
 
-        token = await auth_service.verify_login_code(user.email, "666666")
+        token = await auth_service.verify_login_code(EMAIL, "666666")
         assert token.is_active is True
