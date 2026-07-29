@@ -19,6 +19,7 @@ from modules.users.settings import users_settings
 LOGIN_URL = "/api/v1/auth/magic/login"
 VERIFY_URL = "/api/v1/auth/magic/verify-login"
 LOGOUT_URL = "/api/v1/auth/magic/logout"
+LOGOUT_ALL_URL = "/api/v1/auth/magic/logout-all"
 
 
 # ---------------------------------------------------------------------------
@@ -267,6 +268,55 @@ class TestLogout:
             app.dependency_overrides.pop(current_active_user, None)
 
         assert response.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/auth/magic/logout-all
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+class TestLogoutAll:
+    async def test_unauthenticated_returns_401(self, client: AsyncClient):
+        response = await client.post(LOGOUT_ALL_URL)
+
+        assert response.status_code == 401
+
+    async def test_logout_all_returns_204(self, client: AsyncClient, auth_headers: dict):
+        response = await client.post(LOGOUT_ALL_URL, headers=auth_headers)
+
+        assert response.status_code == 204
+        assert response.content == b""
+
+    async def test_logout_all_invalidates_all_tokens(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        """Two sessions exist; logout-all revokes both."""
+        email = "logout_all@example.com"
+
+        # obtain two tokens via two separate verify flows
+        await client.post(LOGIN_URL, json={"email": email})
+        code1 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        verify1 = await client.post(VERIFY_URL, json={"email": email, "code": code1})
+        token1 = verify1.json()["access_token"]
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code2 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        verify2 = await client.post(VERIFY_URL, json={"email": email, "code": code2})
+        token2 = verify2.json()["access_token"]
+
+        headers1 = {"Authorization": f"Bearer {token1}"}
+        headers2 = {"Authorization": f"Bearer {token2}"}
+
+        # both tokens work before logout-all
+        assert (await client.get("/api/v1/users/me", headers=headers1)).status_code == 200
+        assert (await client.get("/api/v1/users/me", headers=headers2)).status_code == 200
+
+        # logout-all using first token
+        assert (await client.post(LOGOUT_ALL_URL, headers=headers1)).status_code == 204
+
+        # both tokens are now invalid
+        assert (await client.get("/api/v1/users/me", headers=headers1)).status_code == 401
+        assert (await client.get("/api/v1/users/me", headers=headers2)).status_code == 401
 
 
 # ---------------------------------------------------------------------------

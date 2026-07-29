@@ -90,6 +90,21 @@ async def logout(
         )
 
 
+@router.post("/magic/logout-all", status_code=status.HTTP_204_NO_CONTENT)
+async def logout_all(
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+) -> None:
+    try:
+        await auth_service.logout(user.id)
+    except Exception as e:
+        logger.exception(f"Exception: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Something went wrong",
+        )
+
+
 @router.post("/magic/verify-login", openapi_extra={"security": []})
 @limiter.limit(users_settings.RATE_LIMIT_VERIFY)
 async def verify_login(
