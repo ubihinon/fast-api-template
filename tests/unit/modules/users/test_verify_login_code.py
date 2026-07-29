@@ -59,11 +59,8 @@ class TestVerifyLoginCode:
 
         token = await auth_service.verify_login_code(EMAIL, "123456")
 
-        expected = (
-            datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
-        ).replace(minute=0, second=0, microsecond=0)
-        actual = token.expires_at.replace(minute=0, second=0, microsecond=0)
-        assert actual == expected
+        expected = datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
+        assert abs(token.expires_at - expected) < datetime.timedelta(seconds=5)
 
     async def test_nonexistent_email_raises(
         self,
@@ -90,35 +87,24 @@ class TestVerifyLoginCode:
         with pytest.raises(LoginCodeInvalidException):
             await auth_service.verify_login_code(EMAIL, "999999")
 
-    async def test_inactive_code_raises(
+    @pytest.mark.parametrize("code", ["222222", "333333"], ids=["inactive", "expired"])
+    async def test_inactive_or_expired_code_raises(
         self,
         auth_service: AuthMagicLinkService,
         mock_user_manager,
         mock_login_code_repo,
         mock_login_attempt_repo,
         make_user,
+        code: str,
     ):
+        # The repository filters out both inactive and expired codes by returning None.
+        # Both cases are indistinguishable at the service layer.
         mock_user_manager.get_by_email.return_value = make_user()
         mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
-        mock_login_code_repo.get_active.return_value = None  # repo filters out inactive codes
+        mock_login_code_repo.get_active.return_value = None
 
         with pytest.raises(LoginCodeInvalidException):
-            await auth_service.verify_login_code(EMAIL, "222222")
-
-    async def test_expired_code_raises(
-        self,
-        auth_service: AuthMagicLinkService,
-        mock_user_manager,
-        mock_login_code_repo,
-        mock_login_attempt_repo,
-        make_user,
-    ):
-        mock_user_manager.get_by_email.return_value = make_user()
-        mock_login_attempt_repo.get_failed_attempts_count.return_value = 0
-        mock_login_code_repo.get_active.return_value = None  # repo filters out expired codes
-
-        with pytest.raises(LoginCodeInvalidException):
-            await auth_service.verify_login_code(EMAIL, "333333")
+            await auth_service.verify_login_code(EMAIL, code)
 
     async def test_code_deactivated_after_use(
         self,

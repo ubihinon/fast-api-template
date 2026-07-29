@@ -75,7 +75,7 @@ class TestLogin:
 
         await auth_service.login(EMAIL)
 
-        code = mock_email_service.send_login_code_email_task.call_args[0][1]
+        code = mock_email_service.send_login_code_email_task.call_args.args[1]
         assert len(code) == 6
         assert code.isdigit()
 

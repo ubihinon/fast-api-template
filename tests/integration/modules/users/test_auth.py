@@ -52,7 +52,7 @@ class TestLogin:
         email = "recipient@example.com"
         await client.post(LOGIN_URL, json={"email": email})
 
-        sent_email = mock_email_service.send_login_code_email_task.call_args[0][0]
+        sent_email = mock_email_service.send_login_code_email_task.call_args.args[0]
         assert sent_email == email
 
     async def test_inactive_user_returns_403(
@@ -192,15 +192,15 @@ class TestLogout:
     async def test_logout_without_authorization_header_logs_out_all(
         self, client: AsyncClient, existing_user: User, auth_headers: dict
     ):
-        """When Authorization header is omitted after auth, all tokens are revoked."""
-        # Authenticate first so the user exists; then call logout without header.
-        # current_active_user still requires auth, so we pass it once to verify
-        # the session is valid, then call logout without header using the same session.
+        """Logout without a specific token header revokes all tokens for the user."""
         me_resp = await client.get("/api/v1/users/me", headers=auth_headers)
         assert me_resp.status_code == 200
 
         logout_resp = await client.post(LOGOUT_URL, headers=auth_headers)
         assert logout_resp.status_code == 200
+
+        after_logout = await client.get("/api/v1/users/me", headers=auth_headers)
+        assert after_logout.status_code == 401
 
     async def test_logout_invalidates_token(
         self, client: AsyncClient, auth_headers: dict
@@ -227,7 +227,7 @@ class TestFullMagicLinkFlow:
         assert login_resp.status_code == 200
 
         # Step 2: extract code from email mock
-        code = mock_email_service.send_login_code_email_task.call_args[0][1]
+        code = mock_email_service.send_login_code_email_task.call_args.args[1]
         assert len(code) == 6
 
         # Step 3: verify code → receive token
