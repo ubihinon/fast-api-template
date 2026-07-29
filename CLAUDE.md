@@ -68,23 +68,33 @@ cd src && python -m cli.main admin --help
 - `celery_app.py` — Celery instance with Redis broker/backend; auto-discovers tasks from `core.tasks`
 - `celery_beat_schedule.py` — Periodic task schedule
 - `i18n.py` — Babel-based i18n: `load_translations()`, `_()` translation function, `current_language` ContextVar
+- `limiter.py` — SlowAPI `Limiter` instance; uses Redis (`CELERY_BROKER_URL`) as storage; respects `TRUST_PROXY_HEADERS` for real IP detection
+- `logger_setup.py` — `setup_logging()`: configures async queue-based logging with console handler and optional Grafana Loki handler (`GrafanaLokiHandler` + `JsonFormatter`)
 - `middleware.py` — `LanguageMiddleware`: detects language from `Accept-Language` header or `?lang=` query param
+- `models/` — SQLAlchemy base model (`base.py`), mixins (`mixins.py`), custom types (`types.py`)
 - `admin/` — starlette-admin panel (enabled via `ENABLE_ADMIN=True`); uses `DatabaseAuthProvider` for admin-only login
 
 ### Modules (`src/modules/`)
 Modules follow a layered pattern: **router → service → repository → model**
 
-- `users/` — Full auth module using `fastapi-users` as the user model/manager base, but with a **custom magic link flow** (not standard fastapi-users login). Auth flow: request code via email → verify 6-digit code → receive bearer token.
+- `users/` — Full auth module using `fastapi-users` as the user model/manager base, but with a **custom magic link flow** (not standard fastapi-users login). Auth flow: request code via email → verify 6-digit code → receive bearer token. **First login auto-creates the user** if the email does not exist yet (passwordless onboarding).
   - `models/` — SQLAlchemy models: `User`, `AccessToken`, `LoginCode`, `LoginAttempt`
   - `repositories/` — Async SQLAlchemy repository classes (one per model)
   - `services/auth_service.py` — `AuthMagicLinkService` orchestrates the full magic link login/logout flow
-  - `services/user_service.py` — General user CRUD
+  - `dtos/` — Internal data transfer objects (`UserCreate`, `UserRead`, `UserUpdate`, `AccessTokenSchema`)
+  - `schemas/` — Pydantic request/response schemas for the API layer
+  - `exceptions.py` — Domain exceptions (`UserNotFoundException`, `LoginCodeInvalidException`, `LoginMaxNumberAttemptsException`, etc.)
+  - `manager.py` — `UserManager` (fastapi-users `BaseUserManager` subclass)
+  - `auth_backend.py` — fastapi-users `AuthenticationBackend` wired to the DB token strategy
+  - `dependencies.py` — Module-level FastAPI dependencies
+  - `api/dependencies.py` — Endpoint-level dependencies (e.g. `get_auth_magic_link_service`)
   - `api/v1/auth.py` — Auth endpoints: `POST /auth/magic/login`, `/auth/magic/verify-login`, `/auth/magic/logout`
-  - `api/v1/users.py` — User management endpoints
-  - `fastapi_users_config.py` — `current_active_user` dependency
-  - `settings.py` — Module-level constants (token/code TTLs, max login attempts)
+  - `api/v1/users.py` — User management endpoints (`/me`, `/{id}` via fastapi-users router)
+  - `fastapi_users_config.py` — `fastapi_users` instance and `current_active_user` dependency
+  - `settings.py` — Module-level constants (token/code TTLs, max login attempts, rate limit strings)
 
-- `notifications/` — Email notifications via `aiosmtplib`; email tasks dispatched as Celery tasks through `UsersEmailService`
+- `notifications/` — Email notifications via `fastapi-mail`; email tasks dispatched as Celery tasks through `UsersEmailService`
+  - `settings.py` — `EmailSettings` (SMTP config loaded from `.env`)
   - `template_renderer.py` — renders Jinja2 HTML templates with Babel i18n support; Jinja2 `Environment` is cached per language; HTML templates use `{{ _("...") }}` for translatable strings
   - `templates/users/` — HTML email templates (`login_code.html`, `welcome.html`); translatable strings use `{{ _("...") }}`, HTML structure stays outside translations
 

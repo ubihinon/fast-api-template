@@ -9,7 +9,7 @@ A production-ready FastAPI starter template with a complete authentication syste
 - **Celery + Redis** — background task queue with Beat scheduler and Flower monitoring UI
 - **Admin Panel** — starlette-admin with role-based access at `/admin`
 - **Rate Limiting** — per-endpoint limits via SlowAPI
-- **Email Notifications** — async SMTP via `aiosmtplib` with Celery task dispatch
+- **Email Notifications** — async SMTP via `fastapi-mail` with Celery task dispatch
 - **Observability** — Sentry error tracking, Grafana Loki log shipping, structured logging
 - **CORS** — configurable allowed origins
 - **CLI** — Typer-based admin management commands
@@ -26,7 +26,7 @@ A production-ready FastAPI starter template with a complete authentication syste
 | Migrations | Alembic |
 | Auth | fastapi-users + custom magic link flow |
 | Task queue | Celery 5 + Redis |
-| Email | aiosmtplib |
+| Email | fastapi-mail |
 | Admin | starlette-admin |
 | CLI | Typer |
 | Validation | Pydantic v2 |
@@ -47,16 +47,24 @@ A production-ready FastAPI starter template with a complete authentication syste
 │   │   ├── database.py     # Async + sync SQLAlchemy engines
 │   │   ├── celery_app.py   # Celery instance
 │   │   ├── i18n.py         # Babel i18n: load_translations(), _() function
+│   │   ├── limiter.py      # SlowAPI limiter (Redis-backed, proxy-aware)
+│   │   ├── logger_setup.py # Async queue logging + Grafana Loki handler
 │   │   ├── middleware.py   # LanguageMiddleware (Accept-Language / ?lang=)
 │   │   ├── admin/          # starlette-admin setup and auth provider
-│   │   └── models/         # SQLAlchemy base model and mixins
+│   │   └── models/         # SQLAlchemy base model, mixins, custom types
 │   ├── modules/
 │   │   ├── users/          # Auth module (magic link flow, user CRUD)
 │   │   │   ├── api/v1/     # REST endpoints: auth + users
 │   │   │   ├── models/     # User, AccessToken, LoginCode, LoginAttempt
 │   │   │   ├── repositories/
-│   │   │   └── services/   # AuthMagicLinkService, UserService
+│   │   │   ├── services/   # AuthMagicLinkService
+│   │   │   ├── dtos/       # Internal data transfer objects
+│   │   │   ├── schemas/    # API request/response schemas
+│   │   │   ├── exceptions.py
+│   │   │   ├── manager.py  # UserManager (fastapi-users)
+│   │   │   └── auth_backend.py
 │   │   └── notifications/  # Email service with Celery task dispatch
+│   ├── common/             # Shared utilities
 │   └── cli/                # Typer CLI (admin user management)
 ├── tests/
 │   ├── unit/               # Pure unit tests (mocked dependencies)
@@ -71,7 +79,7 @@ A production-ready FastAPI starter template with a complete authentication syste
 
 This template uses a **magic link / OTP** flow instead of passwords:
 
-1. `POST /api/v1/auth/magic/login` — user submits their email; a 6-digit code is sent via email
+1. `POST /api/v1/auth/magic/login` — user submits their email; a 6-digit code is sent via email. **If the email does not exist, a new user is created automatically** (passwordless onboarding — no separate registration step).
 2. `POST /api/v1/auth/magic/verify-login` — user submits email + code; receives a Bearer token
 3. `POST /api/v1/auth/magic/logout` — invalidates the current token
 
@@ -327,6 +335,8 @@ Then add the language code to `SUPPORTED_LANGUAGES` in `src/core/i18n.py`.
 
 | Variable | Default | Required | Description |
 |---|---|---|---|
+| `APP_NAME` | `FastAPI Template` | No | Application name shown in OpenAPI docs |
+| `APP_VERSION` | `1.0.0` | No | Application version shown in OpenAPI docs |
 | `DATABASE_URL` | — | Yes | Async DB connection string (`asyncpg`) |
 | `SYNC_DATABASE_URL` | — | Yes | Sync DB connection string (`psycopg2`, used by Alembic and admin) |
 | `SECRET_KEY` | — | Yes | Session secret for admin panel (min 32 chars) |
@@ -355,7 +365,7 @@ Then add the language code to `SUPPORTED_LANGUAGES` in `src/core/i18n.py`.
 |---|---|---|---|
 | `RESET_PASSWORD_TOKEN_SECRET` | — | Yes | Secret for password reset tokens (min 32 chars) |
 | `VERIFICATION_TOKEN_SECRET` | — | Yes | Secret for email verification tokens (min 32 chars) |
-| `BEARER_TRANSPORT_TOKEN_URL` | `api/v1/auth/login` | No | Token URL shown in OpenAPI docs |
+| `BEARER_TRANSPORT_TOKEN_URL` | `api/v1/auth/magic/login` | No | Token URL shown in OpenAPI docs |
 | `ACCESS_TOKEN_LIFETIME_SECONDS` | `3600` | No | Access token TTL in seconds |
 | `LOGIN_CODE_EXPIRES_IN_TIMEDELTA` | `0:15:00` | No | Magic link code TTL (timedelta string, e.g. `0:15:00`) |
 | `MAX_LOGIN_ATTEMPTS` | `5` | No | Max failed code attempts before lockout |
