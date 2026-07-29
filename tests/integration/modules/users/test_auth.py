@@ -11,7 +11,9 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from modules.users.dtos.user import UserRead
 from modules.users.models import User
+from modules.users.schemas.responses import LoginAccessTokenResponseSchema, LoginResponse
 from modules.users.settings import users_settings
 
 LOGIN_URL = "/api/v1/auth/magic/login"
@@ -31,7 +33,8 @@ class TestLogin:
         response = await client.post(LOGIN_URL, json={"email": "brand_new@example.com"})
 
         assert response.status_code == 200
-        assert response.json() == {"message": "Code sent to your email"}
+        body = LoginResponse.model_validate(response.json())
+        assert body.message == "Code sent to your email"
         mock_email_service.send_login_code_email_task.assert_called_once()
 
     async def test_existing_user_receives_code(
@@ -40,6 +43,7 @@ class TestLogin:
         response = await client.post(LOGIN_URL, json={"email": existing_user.email})
 
         assert response.status_code == 200
+        LoginResponse.model_validate(response.json())
         mock_email_service.send_login_code_email_task.assert_called_once()
 
     async def test_code_sent_to_correct_email(
@@ -86,9 +90,8 @@ class TestVerifyLogin:
         )
 
         assert response.status_code == 200
-        body = response.json()
-        assert "access_token" in body
-        assert len(body["access_token"]) > 0
+        body = LoginAccessTokenResponseSchema.model_validate(response.json())
+        assert len(body.access_token) > 0
 
     async def test_wrong_code_returns_400(
         self, client: AsyncClient, seed_user_with_code
@@ -184,6 +187,7 @@ class TestLogout:
         response = await client.post(LOGOUT_URL, headers=auth_headers)
 
         assert response.status_code == 200
+        LoginResponse.model_validate(response.json())
 
     async def test_logout_without_authorization_header_logs_out_all(
         self, client: AsyncClient, existing_user: User, auth_headers: dict
@@ -231,17 +235,19 @@ class TestFullMagicLinkFlow:
             VERIFY_URL, json={"email": email, "code": code}
         )
         assert verify_resp.status_code == 200
-        token = verify_resp.json()["access_token"]
+        token_body = LoginAccessTokenResponseSchema.model_validate(verify_resp.json())
 
         # Step 4: use token to access protected endpoint
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = {"Authorization": f"Bearer {token_body.access_token}"}
         me_resp = await client.get("/api/v1/users/me", headers=headers)
         assert me_resp.status_code == 200
-        assert me_resp.json()["email"] == email
+        me_body = UserRead.model_validate(me_resp.json())
+        assert me_body.email == email
 
         # Step 5: logout
         logout_resp = await client.post(LOGOUT_URL, headers=headers)
         assert logout_resp.status_code == 200
+        LoginResponse.model_validate(logout_resp.json())
 
         # Step 6: token is no longer valid
         after_logout = await client.get("/api/v1/users/me", headers=headers)

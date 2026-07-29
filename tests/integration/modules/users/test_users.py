@@ -7,6 +7,7 @@ Endpoints under test:
 import pytest
 from httpx import AsyncClient
 
+from modules.users.dtos.user import UserRead
 from modules.users.models import User
 
 ME_URL = "/api/v1/users/me"
@@ -20,12 +21,10 @@ class TestGetMe:
         response = await client.get(ME_URL, headers=auth_headers)
 
         assert response.status_code == 200
-        body = response.json()
-        assert body["id"] == existing_user.id
-        assert body["email"] == existing_user.email
-        assert body["is_active"] is True
-        assert "created_at" in body
-        assert "updated_at" in body
+        body = UserRead.model_validate(response.json())
+        assert body.id == existing_user.id
+        assert body.email == existing_user.email
+        assert body.is_active is True
 
     @pytest.mark.parametrize("headers", [
         {},
@@ -56,7 +55,8 @@ class TestPatchMe:
         )
 
         assert response.status_code == 200
-        assert response.json()["email"] == existing_user.email
+        body = UserRead.model_validate(response.json())
+        assert body.email == existing_user.email
 
     async def test_empty_patch_returns_200(
         self, client: AsyncClient, auth_headers: dict
@@ -65,3 +65,4 @@ class TestPatchMe:
         response = await client.patch(ME_URL, json={}, headers=auth_headers)
 
         assert response.status_code == 200
+        UserRead.model_validate(response.json())
