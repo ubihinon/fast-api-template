@@ -70,12 +70,12 @@ class AuthMagicLinkService:
             code=self.generate_code(),
             expires_at=datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
         )
+        await self.session.commit()
+
         logger.info(f"Login code sent to {user.email}")
         self.email_service.send_login_code_email_task(
             user.email, login_code.code, users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
         )
-
-        await self.session.commit()
 
         return user
 
