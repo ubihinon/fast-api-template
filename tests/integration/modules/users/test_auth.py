@@ -187,14 +187,13 @@ class TestLogout:
 
         assert response.status_code == 401
 
-    async def test_logout_with_token_returns_200(
+    async def test_logout_with_token_returns_204(
         self, client: AsyncClient, auth_headers: dict
     ):
         response = await client.post(LOGOUT_URL, headers=auth_headers)
 
-        assert response.status_code == 200
-        assert "application/json" in response.headers["content-type"]
-        LoginResponse.model_validate(response.json())
+        assert response.status_code == 204
+        assert response.content == b""
 
     async def test_logout_invalidates_token_and_blocks_subsequent_requests(
         self, client: AsyncClient, existing_user: User, auth_headers: dict
@@ -204,7 +203,7 @@ class TestLogout:
         assert me_resp.status_code == 200
 
         logout_resp = await client.post(LOGOUT_URL, headers=auth_headers)
-        assert logout_resp.status_code == 200
+        assert logout_resp.status_code == 204
 
         after_logout = await client.get("/api/v1/users/me", headers=auth_headers)
         assert after_logout.status_code == 401
@@ -305,8 +304,7 @@ class TestFullMagicLinkFlow:
 
         # Step 5: logout
         logout_resp = await client.post(LOGOUT_URL, headers=headers)
-        assert logout_resp.status_code == 200
-        LoginResponse.model_validate(logout_resp.json())
+        assert logout_resp.status_code == 204
 
         # Step 6: token is no longer valid
         after_logout = await client.get("/api/v1/users/me", headers=headers)
