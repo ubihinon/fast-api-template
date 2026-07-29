@@ -57,10 +57,15 @@ class TestVerifyLoginCode:
         mock_login_code_repo.deactivate.return_value = make_login_code()
         mock_access_token_repo.create.return_value = make_access_token()
 
-        token = await auth_service.verify_login_code(EMAIL, "123456")
+        before = datetime.datetime.now(datetime.UTC)
+        await auth_service.verify_login_code(EMAIL, "123456")
+        after = datetime.datetime.now(datetime.UTC)
 
-        expected = datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
-        assert abs(token.expires_at - expected) < datetime.timedelta(seconds=5)
+        _, kwargs = mock_access_token_repo.create.call_args
+        expires_at = kwargs["expires_at"]
+        expected_min = before + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
+        expected_max = after + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
+        assert expected_min <= expires_at <= expected_max
 
     async def test_nonexistent_email_raises(
         self,
