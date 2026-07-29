@@ -65,10 +65,17 @@ async def auth_headers(user_token: str) -> dict[str, str]:
 def seed_user_with_code(
     db_session: AsyncSession,
 ) -> Callable[..., Awaitable[User]]:
-    """Factory fixture: creates an active user with a valid login code."""
+    """Factory fixture: creates an active user with a login code.
+
+    Args:
+        email: User email address.
+        code: 6-digit login code string.
+        expired: When True, the code is created already expired (1 minute ago).
+    """
     async def _factory(
         email: str = "verify@example.com",
         code: str = "123456",
+        expired: bool = False,
     ) -> User:
         user = User(
             email=email,
@@ -79,35 +86,18 @@ def seed_user_with_code(
         db_session.add(user)
         await db_session.flush()
 
+        if expired:
+            expires_at = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=1)
+        else:
+            expires_at = datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+
         db_session.add(LoginCode(
             code=code,
             user_id=user.id,
             is_active=True,
-            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
+            expires_at=expires_at,
         ))
         await db_session.commit()
         return user
 
     return _factory
-
-
-@pytest_asyncio.fixture
-async def user_with_expired_code(db_session: AsyncSession) -> User:
-    """An active user whose login code has already expired."""
-    user = User(
-        email="expired@example.com",
-        hashed_password="x",
-        is_active=True,
-        is_verified=True,
-    )
-    db_session.add(user)
-    await db_session.flush()
-
-    db_session.add(LoginCode(
-        code="333333",
-        user_id=user.id,
-        is_active=True,
-        expires_at=datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=1),
-    ))
-    await db_session.commit()
-    return user

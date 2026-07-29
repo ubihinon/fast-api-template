@@ -6,7 +6,13 @@ Strategy:
 - get_users_email_service is overridden with a MagicMock — no real SMTP
 - Rate limiter is replaced with an in-memory instance per test to prevent interference
 - All user tables are TRUNCATED after every test for full isolation
+
+Environment:
+- TEST_DATABASE_URL — explicit test DB URL (recommended).
+  Falls back to DATABASE_URL with host substitution @postgres: → @localhost:
+  for backwards compatibility with docker-compose setups.
 """
+import os
 from typing import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
@@ -29,7 +35,10 @@ from modules.notifications.services.users_email import UsersEmailService
 # Engine (session-scoped — created once for the entire integration suite)
 # ---------------------------------------------------------------------------
 
-INTEGRATION_DB_URL = settings.DATABASE_URL.replace("@postgres:", "@localhost:")
+INTEGRATION_DB_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    settings.DATABASE_URL.replace("@postgres:", "@localhost:"),
+)
 
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
@@ -60,7 +69,7 @@ def integration_session_factory(integration_engine):
 # DB isolation — truncate all user tables after every test
 # ---------------------------------------------------------------------------
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_tables(integration_engine):
     yield
     async with integration_engine.begin() as conn:

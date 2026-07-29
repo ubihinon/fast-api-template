@@ -33,6 +33,7 @@ class TestLogin:
         response = await client.post(LOGIN_URL, json={"email": "brand_new@example.com"})
 
         assert response.status_code == 200
+        assert "application/json" in response.headers["content-type"]
         body = LoginResponse.model_validate(response.json())
         assert body.message == "Code sent to your email"
         mock_email_service.send_login_code_email_task.assert_called_once()
@@ -90,6 +91,7 @@ class TestVerifyLogin:
         )
 
         assert response.status_code == 200
+        assert "application/json" in response.headers["content-type"]
         body = LoginAccessTokenResponseSchema.model_validate(response.json())
         assert len(body.access_token) > 0
 
@@ -103,15 +105,19 @@ class TestVerifyLogin:
         )
 
         assert response.status_code == 400
+        assert response.json()["detail"]
 
     async def test_expired_code_returns_400(
-        self, client: AsyncClient, user_with_expired_code: User
+        self, client: AsyncClient, seed_user_with_code
     ):
+        await seed_user_with_code(email="expired@example.com", code="333333", expired=True)
+
         response = await client.post(
-            VERIFY_URL, json={"email": user_with_expired_code.email, "code": "333333"}
+            VERIFY_URL, json={"email": "expired@example.com", "code": "333333"}
         )
 
         assert response.status_code == 400
+        assert response.json()["detail"]
 
     async def test_nonexistent_email_returns_404(self, client: AsyncClient):
         response = await client.post(
@@ -187,6 +193,7 @@ class TestLogout:
         response = await client.post(LOGOUT_URL, headers=auth_headers)
 
         assert response.status_code == 200
+        assert "application/json" in response.headers["content-type"]
         LoginResponse.model_validate(response.json())
 
     async def test_logout_invalidates_token_and_blocks_subsequent_requests(
@@ -201,14 +208,6 @@ class TestLogout:
 
         after_logout = await client.get("/api/v1/users/me", headers=auth_headers)
         assert after_logout.status_code == 401
-
-    async def test_logout_invalidates_token(
-        self, client: AsyncClient, auth_headers: dict
-    ):
-        await client.post(LOGOUT_URL, headers=auth_headers)
-
-        me_resp = await client.get("/api/v1/users/me", headers=auth_headers)
-        assert me_resp.status_code == 401
 
 
 # ---------------------------------------------------------------------------
