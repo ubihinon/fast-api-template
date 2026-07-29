@@ -4,12 +4,14 @@ from fastapi_users_db_sqlalchemy.access_token import (
     SQLAlchemyAccessTokenDatabase,
     SQLAlchemyBaseAccessTokenTable,
 )
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func, select
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.models.base import Base
 from core.models.types import UserIdType
+
+_LAST_USED_UPDATE_INTERVAL = datetime.timedelta(hours=1)
 
 
 class ActiveAccessTokenDatabase(SQLAlchemyAccessTokenDatabase):
@@ -35,6 +37,21 @@ class ActiveAccessTokenDatabase(SQLAlchemyAccessTokenDatabase):
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
 
+    async def touch_last_used(self, token: str) -> None:
+        """Lazily update last_used_at — skips the write if updated recently."""
+        now = datetime.datetime.now(datetime.UTC)
+        await self.session.execute(
+            update(self.access_token_table)
+            .where(
+                self.access_token_table.token == token,
+                or_(
+                    self.access_token_table.last_used_at.is_(None),
+                    self.access_token_table.last_used_at < now - _LAST_USED_UPDATE_INTERVAL,
+                ),
+            )
+            .values(last_used_at=now)
+        )
+
 
 class AccessToken(SQLAlchemyBaseAccessTokenTable[UserIdType], Base):
     __tablename__ = "access_token"
@@ -50,6 +67,8 @@ class AccessToken(SQLAlchemyBaseAccessTokenTable[UserIdType], Base):
     )
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    last_used_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     @classmethod
     def get_db(cls, session: AsyncSession):

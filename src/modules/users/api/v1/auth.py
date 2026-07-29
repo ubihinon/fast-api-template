@@ -21,6 +21,7 @@ from modules.users.schemas.requests import (
 from modules.users.schemas.responses import (
     LoginAccessTokenResponseSchema,
     LoginResponse,
+    SessionSchema,
 )
 from modules.users.services.auth_service import AuthMagicLinkService
 from modules.users.settings import users_settings
@@ -88,6 +89,16 @@ async def logout(
             status_code=500,
             detail="Something went wrong",
         )
+
+
+@router.get("/sessions", response_model=list[SessionSchema])
+@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
+async def get_sessions(
+    request: Request,
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+) -> list[SessionSchema]:
+    return await auth_service.get_sessions(user.id)
 
 
 @router.post("/magic/logout-all", status_code=status.HTTP_204_NO_CONTENT)

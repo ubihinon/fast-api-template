@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.i18n import _
 from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
+from modules.users.models.access_token import AccessToken as AccessTokenModel
 from modules.users.dtos.user import UserCreate
 from modules.users.exceptions import (
     AccessTokenNotFound,
@@ -113,6 +114,7 @@ class AuthMagicLinkService:
             token=secrets.token_urlsafe(48),
             user_id=user.id,
             expires_at=datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+            ip_address=self.ip_address,
         )
 
         logger.info(f"✓ User {user.email} logged in via Magic Link")
@@ -120,6 +122,9 @@ class AuthMagicLinkService:
         await self.session.commit()
 
         return AccessTokenSchema.model_validate(access_token)
+
+    async def get_sessions(self, user_id: int) -> list[AccessTokenModel]:
+        return await self.access_token_repository.get_active_sessions(user_id)
 
     async def logout(self, user_id: int, token: str | None = None) -> None:
         if token:

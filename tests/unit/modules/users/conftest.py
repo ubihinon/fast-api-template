@@ -61,6 +61,8 @@ def make_access_token():
         token: str = "test-access-token",
         user_id: int = 1,
         is_active: bool = True,
+        ip_address: str | None = "127.0.0.1",
+        last_used_at: datetime.datetime | None = None,
     ) -> MagicMock:
         at = MagicMock(spec=AccessToken)
         at.id = id
@@ -71,6 +73,8 @@ def make_access_token():
         at.expires_at = (
             datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA
         )
+        at.ip_address = ip_address
+        at.last_used_at = last_used_at
         return at
 
     return _make

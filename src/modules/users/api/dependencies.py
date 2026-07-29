@@ -32,7 +32,7 @@ async def get_auth_magic_link_service(
         login_attempt_repository=LoginAttemptRepository(session),
         access_token_repository=AccessTokenRepository(session),
         ip_address=get_client_ip(request),
-        user_agent=request.headers.get("user-agent"),
+        user_agent=(request.headers.get("user-agent") or "")[:512] or None,
         email_service=email_service,
         user_manager=user_manager,
     )

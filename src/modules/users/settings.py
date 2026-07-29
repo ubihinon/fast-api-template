@@ -14,6 +14,7 @@ class UsersSettings(BaseSettings):
 
     RATE_LIMIT_LOGIN: str = "10/minute"
     RATE_LIMIT_VERIFY: str = "10/minute"
+    RATE_LIMIT_SESSIONS: str = "30/minute"
 
     MAX_LOGIN_ATTEMPTS: int = 5
     LOGIN_CODE_EXPIRES_IN_TIMEDELTA: datetime.timedelta = datetime.timedelta(minutes=15)
