@@ -9,6 +9,7 @@ from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
     LoginCodeInvalidException,
+    LoginCodeNotFoundException,
     LoginMaxNumberAttemptsException,
     UserNotFoundException,
 )
@@ -107,6 +108,9 @@ async def verify_login(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(e))
     except LoginMaxNumberAttemptsException as e:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=str(e))
+    except LoginCodeNotFoundException as e:
+        logger.error(f"Login code consistency error: {e}")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong")
     except Exception as e:
         logger.exception(f"Exception: {e}")
         raise HTTPException(
