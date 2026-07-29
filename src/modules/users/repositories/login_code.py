@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select, update, and_
+from sqlalchemy import and_, update
 
 from core.models.types import UserIdType
 from modules.users.models import LoginCode
