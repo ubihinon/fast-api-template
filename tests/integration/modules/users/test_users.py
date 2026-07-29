@@ -21,6 +21,7 @@ class TestGetMe:
         response = await client.get(ME_URL, headers=auth_headers)
 
         assert response.status_code == 200
+        assert "application/json" in response.headers["content-type"]
         body = UserRead.model_validate(response.json())
         assert body.id == existing_user.id
         assert body.email == existing_user.email
