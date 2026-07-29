@@ -91,9 +91,6 @@ class AuthMagicLinkService:
         )
 
         if failed_attempts_count >= users_settings.MAX_LOGIN_ATTEMPTS:
-            await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address=self.ip_address
-            )
             msg = _("Maximum number of attempts exceeded (%(max)s). Try again later") % {
                 "max": users_settings.MAX_LOGIN_ATTEMPTS
             }
