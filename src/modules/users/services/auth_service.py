@@ -101,6 +101,7 @@ class AuthMagicLinkService:
             await self.login_attempt_repository.create(
                 user.id, user.email, code, False, ip_address=self.ip_address
             )
+            await self.session.commit()
             raise LoginCodeInvalidException()
 
         await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address=self.ip_address)
