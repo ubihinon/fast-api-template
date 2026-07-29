@@ -9,7 +9,7 @@ from modules.users.repositories.base import BaseRepository
 
 class LoginAttemptRepository(BaseRepository):
     async def create(
-        self, user_id: UserIdType, email: str, code_entered: str, is_correct: bool, ip_address: str | None
+        self, user_id: UserIdType, email: str, code_entered: str, is_correct: bool, ip_address: str | None, user_agent: str | None = None
     ) -> LoginAttempt:
         login_attempt = LoginAttempt(
             user_id=user_id,
@@ -17,6 +17,7 @@ class LoginAttemptRepository(BaseRepository):
             code_entered=code_entered,
             is_correct=is_correct,
             ip_address=ip_address,
+            user_agent=user_agent,
         )
         self.session.add(login_attempt)
         await self.session.flush()
