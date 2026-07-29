@@ -87,7 +87,7 @@ class AuthMagicLinkService:
 
         failed_attempts_since = datetime.datetime.now(datetime.UTC) - users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
         failed_attempts_count = await self.login_attempt_repository.get_failed_attempts_count(
-            user.id, self.ip_address, since=failed_attempts_since
+            user.id, since=failed_attempts_since
         )
 
         if failed_attempts_count >= users_settings.MAX_LOGIN_ATTEMPTS:
