@@ -38,7 +38,7 @@ class AuthMagicLinkService:
         access_token_repository: AccessTokenRepository,
         email_service: UsersEmailService,
         user_manager: UserManager,
-        ip_address: str,
+        ip_address: str | None,
     ):
         self.session = session
         self.user_repository = user_repository
