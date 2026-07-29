@@ -5,14 +5,13 @@ Endpoints under test:
     POST /api/v1/auth/magic/verify-login
     POST /api/v1/auth/magic/logout
 """
-import datetime
 from unittest.mock import MagicMock
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from modules.users.models import LoginCode, User
+from modules.users.models import User
 from modules.users.settings import users_settings
 
 LOGIN_URL = "/api/v1/auth/magic/login"
@@ -76,35 +75,10 @@ class TestLogin:
 
 @pytest.mark.integration
 class TestVerifyLogin:
-    async def _seed_user_with_code(
-        self,
-        db_session: AsyncSession,
-        email: str = "verify@example.com",
-        code: str = "123456",
-    ) -> User:
-        user = User(
-            email=email,
-            hashed_password="hashed",
-            is_active=True,
-            is_verified=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        login_code = LoginCode(
-            code=code,
-            user_id=user.id,
-            is_active=True,
-            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
-        )
-        db_session.add(login_code)
-        await db_session.commit()
-        return user
-
     async def test_valid_code_returns_access_token(
-        self, client: AsyncClient, db_session: AsyncSession
+        self, client: AsyncClient, seed_user_with_code
     ):
-        await self._seed_user_with_code(db_session, "verify@example.com", "111111")
+        await seed_user_with_code(email="verify@example.com", code="111111")
 
         response = await client.post(
             VERIFY_URL, json={"email": "verify@example.com", "code": "111111"}
@@ -116,9 +90,9 @@ class TestVerifyLogin:
         assert len(body["access_token"]) > 0
 
     async def test_wrong_code_returns_400(
-        self, client: AsyncClient, db_session: AsyncSession
+        self, client: AsyncClient, seed_user_with_code
     ):
-        await self._seed_user_with_code(db_session, "wrong@example.com", "222222")
+        await seed_user_with_code(email="wrong@example.com", code="222222")
 
         response = await client.post(
             VERIFY_URL, json={"email": "wrong@example.com", "code": "000000"}
@@ -127,26 +101,10 @@ class TestVerifyLogin:
         assert response.status_code == 400
 
     async def test_expired_code_returns_400(
-        self, client: AsyncClient, db_session: AsyncSession
+        self, client: AsyncClient, user_with_expired_code: User
     ):
-        user = User(
-            email="expired@example.com", hashed_password="x",
-            is_active=True, is_verified=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        expired_code = LoginCode(
-            code="333333",
-            user_id=user.id,
-            is_active=True,
-            expires_at=datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=1),
-        )
-        db_session.add(expired_code)
-        await db_session.commit()
-
         response = await client.post(
-            VERIFY_URL, json={"email": "expired@example.com", "code": "333333"}
+            VERIFY_URL, json={"email": user_with_expired_code.email, "code": "333333"}
         )
 
         assert response.status_code == 400
@@ -159,13 +117,13 @@ class TestVerifyLogin:
         assert response.status_code == 404
 
     async def test_max_attempts_returns_403(
-        self, client: AsyncClient, db_session: AsyncSession
+        self, client: AsyncClient, db_session: AsyncSession, seed_user_with_code
     ):
         """Seed MAX_LOGIN_ATTEMPTS failed attempts directly in DB to avoid
         relying on exception-driven commit behavior."""
         from modules.users.models import LoginAttempt
 
-        user = await self._seed_user_with_code(db_session, "brute@example.com", "444444")
+        user = await seed_user_with_code(email="brute@example.com", code="444444")
 
         for _ in range(users_settings.MAX_LOGIN_ATTEMPTS):
             db_session.add(LoginAttempt(
@@ -188,10 +146,10 @@ class TestVerifyLogin:
         assert response.status_code == 422
 
     async def test_code_is_invalidated_after_use(
-        self, client: AsyncClient, db_session: AsyncSession
+        self, client: AsyncClient, seed_user_with_code
     ):
         """Second verify attempt with the same code must fail."""
-        await self._seed_user_with_code(db_session, "reuse@example.com", "555555")
+        await seed_user_with_code(email="reuse@example.com", code="555555")
 
         await client.post(
             VERIFY_URL, json={"email": "reuse@example.com", "code": "555555"}
