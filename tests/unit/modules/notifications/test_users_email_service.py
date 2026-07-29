@@ -1,5 +1,5 @@
 """Unit tests for UsersEmailService."""
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -18,7 +18,6 @@ class TestSendLoginCodeEmail:
         assert result is True
 
     async def test_passes_correct_template(self, users_email_service: UsersEmailService):
-        from unittest.mock import patch
         with patch("modules.notifications.services.users_email.render_email_template") as mock_render:
             mock_render.return_value = "<html></html>"
             await users_email_service.send_login_code_email(EMAIL, CODE, EXPIRES_IN)
@@ -46,7 +45,6 @@ class TestSendWelcomeEmail:
         assert result is True
 
     async def test_passes_correct_template(self, users_email_service: UsersEmailService):
-        from unittest.mock import patch
         with patch("modules.notifications.services.users_email.render_email_template") as mock_render:
             mock_render.return_value = "<html></html>"
             await users_email_service.send_welcome_email(EMAIL)

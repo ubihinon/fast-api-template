@@ -1,4 +1,6 @@
 """Unit tests for AuthMagicLinkService.generate_code."""
+from unittest.mock import patch
+
 import pytest
 
 from modules.users.services.auth_service import AuthMagicLinkService
@@ -12,6 +14,8 @@ class TestGenerateCode:
         assert code.isdigit()
 
     def test_code_is_zero_padded(self):
-        """Codes with low random values must still be 6 characters wide."""
-        for _ in range(50):
-            assert len(AuthMagicLinkService.generate_code()) == 6
+        """A low random value (e.g. 7) must be zero-padded to 6 characters."""
+        with patch("modules.users.services.auth_service.secrets.randbelow", return_value=7):
+            code = AuthMagicLinkService.generate_code()
+        assert code == "000007"
+        assert len(code) == 6
