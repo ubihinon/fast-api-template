@@ -70,10 +70,13 @@ async def logout(
 ) -> LoginResponse:
     token = None
     if authorization:
-        try:
-            token = authorization.split(" ")[1]
-        except IndexError:
-            logger.warning("Access token is empty")
+        parts = authorization.split(" ")
+        if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1]:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Authorization header format")
+        token = parts[1]
+
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header is missing")
 
     try:
         await auth_service.logout(user.id, token)
