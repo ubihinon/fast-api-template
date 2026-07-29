@@ -32,7 +32,7 @@ from modules.notifications.services.users_email import UsersEmailService
 INTEGRATION_DB_URL = settings.DATABASE_URL.replace("@postgres:", "@localhost:")
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def integration_engine():
     from core.models.base import Base
     from modules.users.models import User, LoginCode, AccessToken  # noqa: F401 — register models
