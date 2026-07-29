@@ -38,6 +38,7 @@ class AuthMagicLinkService:
         email_service: UsersEmailService,
         user_manager: UserManager,
         ip_address: str | None,
+        user_agent: str | None = None,
     ):
         self.session = session
         self.user_repository = user_repository
@@ -47,6 +48,7 @@ class AuthMagicLinkService:
         self.email_service = email_service
         self.user_manager = user_manager
         self.ip_address = ip_address
+        self.user_agent = user_agent
 
     async def login(self, email: str) -> User:
         try:
@@ -98,12 +100,12 @@ class AuthMagicLinkService:
         login_code = await self.login_code_repository.get_active_and_deactivate(code, user.id)
         if not login_code:
             await self.login_attempt_repository.create(
-                user.id, user.email, code, False, ip_address=self.ip_address
+                user.id, user.email, code, False, ip_address=self.ip_address, user_agent=self.user_agent
             )
             await self.session.commit()
             raise LoginCodeInvalidException()
 
-        await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address=self.ip_address)
+        await self.login_attempt_repository.create(user.id, user.email, code, True, ip_address=self.ip_address, user_agent=self.user_agent)
 
         logger.info(f"✓ Code is correct for user_id={user.id}")
 

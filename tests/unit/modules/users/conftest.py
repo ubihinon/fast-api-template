@@ -142,4 +142,5 @@ def auth_service(
         email_service=mock_email_service,
         user_manager=mock_user_manager,
         ip_address="127.0.0.1",
+        user_agent="Mozilla/5.0 (test)",
     )
