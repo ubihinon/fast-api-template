@@ -13,7 +13,6 @@ ME_URL = "/api/v1/users/me"
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
 class TestGetMe:
     async def test_authenticated_returns_user_data(
         self, client: AsyncClient, existing_user: User, auth_headers: dict
@@ -42,7 +41,6 @@ class TestGetMe:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
 class TestPatchMe:
     async def test_unauthenticated_returns_401(self, client: AsyncClient):
         response = await client.patch(ME_URL, json={})

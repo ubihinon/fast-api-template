@@ -12,7 +12,6 @@ EXPIRES_IN = users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 class TestSendLoginCodeEmail:
     async def test_returns_true_on_success(self, users_email_service: UsersEmailService):
         result = await users_email_service.send_login_code_email(EMAIL, CODE, EXPIRES_IN)
@@ -41,7 +40,6 @@ class TestSendLoginCodeEmail:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 class TestSendWelcomeEmail:
     async def test_returns_true_on_success(self, users_email_service: UsersEmailService):
         result = await users_email_service.send_welcome_email(EMAIL)

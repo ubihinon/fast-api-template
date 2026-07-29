@@ -46,7 +46,6 @@ class TestPrepareMessage:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 class TestSendEmailAsync:
     async def test_returns_true_on_success(self, users_email_service: UsersEmailService):
         result = await users_email_service.send_email_async(make_payload())
