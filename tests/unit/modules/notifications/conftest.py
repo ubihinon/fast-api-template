@@ -4,8 +4,21 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import BackgroundTasks
 
+from modules.notifications.schemas.email_payload import EmailPayload
 from modules.notifications.services.users_email import UsersEmailService
 from modules.notifications.settings import EmailSettings
+
+
+@pytest.fixture
+def make_payload():
+    def _make(**kwargs) -> EmailPayload:
+        defaults = dict(
+            recipients=["recipient@example.com"],
+            subject="Test Subject",
+            body={"key": "value"},
+        )
+        return EmailPayload(**{**defaults, **kwargs})
+    return _make
 
 
 @pytest.fixture
