@@ -23,17 +23,11 @@ class LoginAttemptRepository(BaseRepository):
         return login_attempt
 
     async def get_failed_attempts_count(
-        self, user_id: UserIdType, ip_address: str | None, since: datetime.datetime
+        self, user_id: UserIdType, since: datetime.datetime
     ) -> int:
-        ip_filter = (
-            LoginAttempt.ip_address.is_(None)
-            if ip_address is None
-            else LoginAttempt.ip_address == ip_address
-        )
         query = select(func.count()).select_from(LoginAttempt).where(
             LoginAttempt.user_id == user_id,
             LoginAttempt.is_correct.is_(False),
             LoginAttempt.created_at >= since,
-            ip_filter,
         )
         return await self.session.scalar(query) or 0
