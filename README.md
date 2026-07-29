@@ -81,7 +81,9 @@ This template uses a **magic link / OTP** flow instead of passwords:
 
 1. `POST /api/v1/auth/magic/login` — user submits their email; a 6-digit code is sent via email. **If the email does not exist, a new user is created automatically** (passwordless onboarding — no separate registration step).
 2. `POST /api/v1/auth/magic/verify-login` — user submits email + code; receives a Bearer token
-3. `POST /api/v1/auth/magic/logout` — invalidates the current token
+3. `POST /api/v1/auth/magic/logout` — invalidates the current token (single session)
+4. `POST /api/v1/auth/magic/logout-all` — invalidates all active tokens for the user (all devices)
+5. `GET /api/v1/auth/sessions` — lists all active sessions with metadata: `created_at`, `expires_at`, `last_used_at`, `ip_address`
 
 All protected endpoints expect `Authorization: Bearer <token>`.
 
@@ -371,6 +373,7 @@ Then add the language code to `SUPPORTED_LANGUAGES` in `src/core/i18n.py`.
 | `MAX_LOGIN_ATTEMPTS` | `5` | No | Max failed code attempts before lockout |
 | `RATE_LIMIT_LOGIN` | `10/minute` | No | Rate limit for the login endpoint |
 | `RATE_LIMIT_VERIFY` | `10/minute` | No | Rate limit for the verify-login endpoint |
+| `RATE_LIMIT_SESSIONS` | `30/minute` | No | Rate limit for the sessions list endpoint |
 
 ### Email (SMTP)
 

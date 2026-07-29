@@ -4,6 +4,8 @@ Endpoints under test:
     POST /api/v1/auth/magic/login
     POST /api/v1/auth/magic/verify-login
     POST /api/v1/auth/magic/logout
+    POST /api/v1/auth/magic/logout-all
+    GET  /api/v1/auth/sessions
 """
 from unittest.mock import MagicMock
 
@@ -20,6 +22,7 @@ LOGIN_URL = "/api/v1/auth/magic/login"
 VERIFY_URL = "/api/v1/auth/magic/verify-login"
 LOGOUT_URL = "/api/v1/auth/magic/logout"
 LOGOUT_ALL_URL = "/api/v1/auth/magic/logout-all"
+SESSIONS_URL = "/api/v1/auth/sessions"
 
 
 # ---------------------------------------------------------------------------
@@ -268,6 +271,86 @@ class TestLogout:
             app.dependency_overrides.pop(current_active_user, None)
 
         assert response.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/auth/sessions
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+class TestGetSessions:
+    async def test_unauthenticated_returns_401(self, client: AsyncClient):
+        response = await client.get(SESSIONS_URL)
+
+        assert response.status_code == 401
+
+    async def test_returns_active_sessions(self, client: AsyncClient, auth_headers: dict):
+        response = await client.get(SESSIONS_URL, headers=auth_headers)
+
+        assert response.status_code == 200
+        assert "application/json" in response.headers["content-type"]
+        sessions = response.json()
+        assert isinstance(sessions, list)
+        assert len(sessions) >= 1
+        session = sessions[0]
+        assert "id" in session
+        assert "created_at" in session
+        assert "expires_at" in session
+        assert "last_used_at" in session
+        assert "ip_address" in session
+        assert "token" not in session
+
+    async def test_invalidated_session_not_in_list(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        """After logout, the revoked session must not appear in the sessions list of another active session."""
+        email = "sessions_revoke@example.com"
+
+        # create two sessions
+        await client.post(LOGIN_URL, json={"email": email})
+        code1 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token1 = (await client.post(VERIFY_URL, json={"email": email, "code": code1})).json()["access_token"]
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code2 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token2 = (await client.post(VERIFY_URL, json={"email": email, "code": code2})).json()["access_token"]
+
+        headers1 = {"Authorization": f"Bearer {token1}"}
+        headers2 = {"Authorization": f"Bearer {token2}"}
+
+        assert len((await client.get(SESSIONS_URL, headers=headers2)).json()) == 2
+
+        # logout session 1
+        await client.post(LOGOUT_URL, headers=headers1)
+
+        # session 1 is gone from the list; session 2 still active
+        sessions = (await client.get(SESSIONS_URL, headers=headers2)).json()
+        assert len(sessions) == 1
+
+    async def test_logout_all_clears_all_sessions(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        """After logout-all, no sessions remain for any of the tokens."""
+        email = "sessions_check@example.com"
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code1 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token1 = (await client.post(VERIFY_URL, json={"email": email, "code": code1})).json()["access_token"]
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code2 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token2 = (await client.post(VERIFY_URL, json={"email": email, "code": code2})).json()["access_token"]
+
+        headers1 = {"Authorization": f"Bearer {token1}"}
+        headers2 = {"Authorization": f"Bearer {token2}"}
+
+        sessions = (await client.get(SESSIONS_URL, headers=headers1)).json()
+        assert len(sessions) == 2
+
+        await client.post(LOGOUT_ALL_URL, headers=headers1)
+
+        assert (await client.get(SESSIONS_URL, headers=headers1)).status_code == 401
+        assert (await client.get(SESSIONS_URL, headers=headers2)).status_code == 401
 
 
 # ---------------------------------------------------------------------------
