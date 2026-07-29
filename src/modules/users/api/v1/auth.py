@@ -62,12 +62,12 @@ async def login_with_magic_link(
         )
 
 
-@router.post("/magic/logout", response_model=LoginResponse)
+@router.post("/magic/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
     user:  Annotated[User, Depends(current_active_user)],
     auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
     authorization: Annotated[str | None, Header()] = None,
-) -> LoginResponse:
+) -> None:
     token = None
     if authorization:
         parts = authorization.split(" ")
@@ -80,7 +80,6 @@ async def logout(
 
     try:
         await auth_service.logout(user.id, token)
-        return LoginResponse(message=f"User {user.email} logged out")
     except AccessTokenNotFound as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
