@@ -27,15 +27,14 @@ class TestGetMe:
         assert "created_at" in body
         assert "updated_at" in body
 
-    async def test_unauthenticated_returns_401(self, client: AsyncClient):
-        response = await client.get(ME_URL)
-
-        assert response.status_code == 401
-
-    async def test_invalid_token_returns_401(self, client: AsyncClient):
-        response = await client.get(
-            ME_URL, headers={"Authorization": "Bearer invalid-token-xyz"}
-        )
+    @pytest.mark.parametrize("headers", [
+        {},
+        {"Authorization": "Bearer invalid-token-xyz"},
+        {"Authorization": "Bearer"},
+        {"Authorization": "Token abc123"},
+    ])
+    async def test_invalid_auth_returns_401(self, client: AsyncClient, headers: dict):
+        response = await client.get(ME_URL, headers=headers)
 
         assert response.status_code == 401
 

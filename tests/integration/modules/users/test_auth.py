@@ -58,13 +58,14 @@ class TestLogin:
 
         assert response.status_code == 403
 
-    async def test_invalid_email_format_returns_422(self, client: AsyncClient):
-        response = await client.post(LOGIN_URL, json={"email": "not-an-email"})
-
-        assert response.status_code == 422
-
-    async def test_missing_email_field_returns_422(self, client: AsyncClient):
-        response = await client.post(LOGIN_URL, json={})
+    @pytest.mark.parametrize("payload", [
+        {"email": "not-an-email"},
+        {"email": "@no-user.com"},
+        {"email": ""},
+        {},
+    ])
+    async def test_invalid_payload_returns_422(self, client: AsyncClient, payload: dict):
+        response = await client.post(LOGIN_URL, json=payload)
 
         assert response.status_code == 422
 
@@ -141,8 +142,13 @@ class TestVerifyLogin:
 
         assert response.status_code == 403
 
-    async def test_missing_fields_return_422(self, client: AsyncClient):
-        response = await client.post(VERIFY_URL, json={"email": "a@b.com"})
+    @pytest.mark.parametrize("payload", [
+        {"email": "a@b.com"},   # missing code
+        {"code": "123456"},     # missing email
+        {},
+    ])
+    async def test_missing_fields_return_422(self, client: AsyncClient, payload: dict):
+        response = await client.post(VERIFY_URL, json=payload)
         assert response.status_code == 422
 
     async def test_code_is_invalidated_after_use(
