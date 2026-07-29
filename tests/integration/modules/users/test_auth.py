@@ -25,7 +25,6 @@ LOGOUT_URL = "/api/v1/auth/magic/logout"
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.asyncio
 class TestLogin:
     async def test_new_user_is_created_and_receives_code(
         self, client: AsyncClient, mock_email_service: MagicMock
@@ -76,7 +75,6 @@ class TestLogin:
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.asyncio
 class TestVerifyLogin:
     async def _seed_user_with_code(
         self,
@@ -210,7 +208,6 @@ class TestVerifyLogin:
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.asyncio
 class TestLogout:
     async def test_unauthenticated_returns_401(self, client: AsyncClient):
         response = await client.post(LOGOUT_URL)
@@ -251,7 +248,6 @@ class TestLogout:
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.asyncio
 class TestFullMagicLinkFlow:
     async def test_complete_flow(
         self, client: AsyncClient, mock_email_service: MagicMock
