@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from modules.users.settings import users_settings
 from modules.notifications.services.users_email import UsersEmailService
+from modules.users.settings import users_settings
 
 EMAIL = "user@example.com"
 CODE = "123456"

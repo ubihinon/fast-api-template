@@ -15,7 +15,6 @@ from modules.users.repositories.user import UserRepository
 from modules.users.services.auth_service import AuthMagicLinkService
 from modules.users.settings import users_settings
 
-
 # ---------------------------------------------------------------------------
 # Builder helpers — callable fixtures so tests can create objects with custom args
 # ---------------------------------------------------------------------------
