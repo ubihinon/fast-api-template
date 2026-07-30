@@ -4,8 +4,11 @@
       "Read(./.env.template)",
       "Edit(./.env.template)",
       "Bash(.venv/bin/mypy src/ 2>&1)",
+      "Bash(.venv/bin/mypy tests/ 2>&1)",
       "Bash(.venv/bin/ruff check src/ 2>&1)",
+      "Bash(.venv/bin/ruff check tests/ 2>&1)",
       "Bash(.venv/bin/ruff check --fix src/)",
+      "Bash(.venv/bin/ruff check --fix tests/)",
       "Bash(.venv/bin/pybabel extract*)",
       "Bash(.venv/bin/pybabel update*)",
       "Bash(.venv/bin/pybabel compile*)"
