@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.i18n import _
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.dtos.user import UserCreate
-from modules.users.schemas.responses import SessionSchema
 from modules.users.exceptions import (
     AccessTokenNotFound,
     AuthErrorException,
@@ -23,6 +22,7 @@ from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
+from modules.users.schemas.responses import SessionSchema
 from modules.users.settings import users_settings
 
 logger = logging.getLogger(__name__)
