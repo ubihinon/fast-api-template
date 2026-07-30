@@ -534,13 +534,15 @@ class TestGetLoginHistory:
 
         assert response.status_code == 401
 
-    async def test_empty_history_returns_empty_list(
+    async def test_empty_history_returns_empty_page(
         self, client: AsyncClient, auth_headers: dict
     ):
         response = await client.get(LOGIN_HISTORY_URL, headers=auth_headers)
 
         assert response.status_code == 200
-        assert response.json() == []
+        body = response.json()
+        assert body["items"] == []
+        assert body["next_cursor"] is None
 
     async def test_successful_login_appears_in_history(
         self, client: AsyncClient, mock_email_service: MagicMock
@@ -554,9 +556,9 @@ class TestGetLoginHistory:
         response = await client.get(LOGIN_HISTORY_URL, headers=headers)
 
         assert response.status_code == 200
-        history = response.json()
-        assert len(history) >= 1
-        entry = history[0]
+        items = response.json()["items"]
+        assert len(items) >= 1
+        entry = items[0]
         assert entry["is_correct"] is True
         assert "id" in entry
         assert "created_at" in entry
@@ -570,21 +572,15 @@ class TestGetLoginHistory:
     ):
         email = "history_fail@example.com"
         await client.post(LOGIN_URL, json={"email": email})
-        code = mock_email_service.send_login_code_email_task.call_args[0][1]
-
         await client.post(VERIFY_URL, json={"email": email, "code": "000000"})  # wrong code
 
-        # login again to get a valid token
         await client.post(LOGIN_URL, json={"email": email})
         code2 = mock_email_service.send_login_code_email_task.call_args[0][1]
         token = (await client.post(VERIFY_URL, json={"email": email, "code": code2})).json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = await client.get(LOGIN_HISTORY_URL, headers=headers)
-        history = response.json()
-
-        failed = [e for e in history if not e["is_correct"]]
-        assert len(failed) >= 1
+        items = (await client.get(LOGIN_HISTORY_URL, headers=headers)).json()["items"]
+        assert any(not e["is_correct"] for e in items)
 
     async def test_history_ordered_newest_first(
         self, client: AsyncClient, mock_email_service: MagicMock
@@ -592,7 +588,6 @@ class TestGetLoginHistory:
         email = "history_order@example.com"
 
         await client.post(LOGIN_URL, json={"email": email})
-        code1 = mock_email_service.send_login_code_email_task.call_args[0][1]
         await client.post(VERIFY_URL, json={"email": email, "code": "000000"})  # fail
 
         await client.post(LOGIN_URL, json={"email": email})
@@ -600,15 +595,16 @@ class TestGetLoginHistory:
         token = (await client.post(VERIFY_URL, json={"email": email, "code": code2})).json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
 
-        history = (await client.get(LOGIN_HISTORY_URL, headers=headers)).json()
-        assert len(history) >= 2
-        dates = [entry["created_at"] for entry in history]
-        assert dates == sorted(dates, reverse=True)
+        items = (await client.get(LOGIN_HISTORY_URL, headers=headers)).json()["items"]
+        assert len(items) >= 2
+        ids = [e["id"] for e in items]
+        assert ids == sorted(ids, reverse=True)
 
-    async def test_pagination_limit(
+    async def test_cursor_pagination(
         self, client: AsyncClient, mock_email_service: MagicMock
     ):
-        email = "history_page@example.com"
+        """Full cursor-based pagination walk: page 1 → next_cursor → page 2."""
+        email = "history_cursor@example.com"
 
         # produce 3 attempts (2 fails + 1 success)
         await client.post(LOGIN_URL, json={"email": email})
@@ -620,17 +616,32 @@ class TestGetLoginHistory:
         token = (await client.post(VERIFY_URL, json={"email": email, "code": code})).json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = await client.get(LOGIN_HISTORY_URL, headers=headers, params={"limit": 2})
+        # page 1: limit=2
+        page1 = (await client.get(LOGIN_HISTORY_URL, headers=headers, params={"limit": 2})).json()
+        assert len(page1["items"]) == 2
+        assert page1["next_cursor"] is not None
 
-        assert response.status_code == 200
-        assert len(response.json()) == 2
+        # page 2: use next_cursor
+        page2 = (await client.get(
+            LOGIN_HISTORY_URL, headers=headers,
+            params={"limit": 2, "cursor": page1["next_cursor"]}
+        )).json()
+        assert len(page2["items"]) >= 1
+
+        # no overlap between pages
+        ids_p1 = {e["id"] for e in page1["items"]}
+        ids_p2 = {e["id"] for e in page2["items"]}
+        assert ids_p1.isdisjoint(ids_p2)
+
+        # last page has no next_cursor
+        assert page2["next_cursor"] is None
 
     @pytest.mark.parametrize("params,expected_status", [
         ({"limit": 0}, 422),
         ({"limit": 201}, 422),
-        ({"offset": -1}, 422),
+        ({"cursor": 0}, 422),
     ])
-    async def test_invalid_pagination_params_return_422(
+    async def test_invalid_params_return_422(
         self, client: AsyncClient, auth_headers: dict, params: dict, expected_status: int
     ):
         response = await client.get(LOGIN_HISTORY_URL, headers=auth_headers, params=params)
@@ -650,14 +661,13 @@ class TestGetLoginHistory:
 
         await client.post(LOGIN_URL, json={"email": email_b})
         code_b = mock_email_service.send_login_code_email_task.call_args[0][1]
-        (await client.post(VERIFY_URL, json={"email": email_b, "code": code_b}))
+        await client.post(VERIFY_URL, json={"email": email_b, "code": code_b})
 
         headers_a = {"Authorization": f"Bearer {token_a}"}
-        history_a = (await client.get(LOGIN_HISTORY_URL, headers=headers_a)).json()
+        items_a = (await client.get(LOGIN_HISTORY_URL, headers=headers_a)).json()["items"]
 
-        assert all(entry["id"] is not None for entry in history_a)
-        # user A has exactly 1 successful attempt (their own login)
-        assert len([e for e in history_a if e["is_correct"]]) == 1
+        # user A has exactly 1 attempt (their own successful login)
+        assert len([e for e in items_a if e["is_correct"]]) == 1
 
 
 # ---------------------------------------------------------------------------

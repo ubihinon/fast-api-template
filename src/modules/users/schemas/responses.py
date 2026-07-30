@@ -29,3 +29,8 @@ class LoginAttemptSchema(schemas.BaseModel):
     user_agent: str | None
 
     model_config = {"from_attributes": True}
+
+
+class LoginHistoryPageSchema(schemas.BaseModel):
+    items: list[LoginAttemptSchema]
+    next_cursor: int | None
