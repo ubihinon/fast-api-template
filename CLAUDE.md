@@ -14,6 +14,11 @@ cd src && uvicorn core.main:app --reload --host 0.0.0.0 --port 8000
 pytest
 ```
 
+**Check module boundary violations:**
+```bash
+PYTHONPATH=src .venv/bin/lint-imports
+```
+
 **Run a single test file:**
 ```bash
 pytest tests/unit/modules/users/test_login.py
@@ -76,6 +81,8 @@ cd src && python -m cli.main admin --help
 
 ### Modules (`src/modules/`)
 Modules follow a layered pattern: **router → service → repository → model**
+
+**Module isolation rule:** modules must not import from each other directly. Cross-module wiring happens only in `core/` (composition root). Enforced by `import-linter` — run `PYTHONPATH=src .venv/bin/lint-imports` to verify. Contracts are defined in `[tool.importlinter]` in `pyproject.toml`.
 
 - `users/` — Full auth module using `fastapi-users` as the user model/manager base, but with a **custom magic link flow** (not standard fastapi-users login). Auth flow: request code via email → verify 6-digit code → receive bearer token. **First login auto-creates the user** if the email does not exist yet (passwordless onboarding).
   - `models/` — SQLAlchemy models: `User`, `AccessToken`, `LoginCode`, `LoginAttempt`

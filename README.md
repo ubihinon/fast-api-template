@@ -279,6 +279,12 @@ pytest tests/unit/modules/users/test_login.py::TestClassName::test_method_name
 .venv/bin/mypy src/
 ```
 
+**Check module boundary violations:**
+
+```bash
+PYTHONPATH=src .venv/bin/lint-imports
+```
+
 ## Internationalization (i18n)
 
 The API supports multiple languages via Babel. The language is detected automatically from the `Accept-Language` request header or the `?lang=` query parameter.
@@ -409,7 +415,7 @@ Contributions are welcome. Please open an issue before submitting a large pull r
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
 3. Make your changes and ensure all tests pass: `pytest`
-4. Run linting and type checks: `ruff check src/ && mypy src/`
+4. Run linting and type checks: `ruff check src/ && mypy src/ && PYTHONPATH=src lint-imports`
 5. Open a pull request against `main`
 
 ## License
