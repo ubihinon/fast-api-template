@@ -71,7 +71,7 @@ async def logout(
     auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
     authorization: Annotated[str, Header()],
 ) -> None:
-    token = authorization.split(" ")[1]
+    token = authorization.split(" ", 1)[1]
 
     try:
         await auth_service.logout(user.id, token)
