@@ -101,7 +101,7 @@ All protected endpoints expect `Authorization: Bearer <token>`.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-org/fastapi-template.git
+git clone https://github.com/ubihinon/fast-api-template.git
 cd fastapi-template
 ```
 
