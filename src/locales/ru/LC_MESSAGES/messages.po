@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-30 17:07+0400\n"
+"POT-Creation-Date: 2026-07-30 18:30+0400\n"
 "PO-Revision-Date: 2026-07-28 17:49+0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -93,12 +93,6 @@ msgstr "Код отправлен на вашу почту"
 msgid "Something went wrong"
 msgstr "Что-то пошло не так"
 
-msgid "Invalid Authorization header format"
-msgstr "Неверный формат заголовка Authorization"
-
-msgid "Authorization header is missing"
-msgstr "Отсутствует заголовок Authorization"
-
 msgid "Session not found"
 msgstr "Сессия не найдена"
 
@@ -112,19 +106,3 @@ msgstr "Превышено максимальное количество поп�
 
 msgid "Token not found"
 msgstr "Токен не найден"
-
-#~ msgid ""
-#~ "You requested a login code for the"
-#~ " account associated with "
-#~ "<strong>%(email)s</strong>. Please use the "
-#~ "following code to complete your sign-"
-#~ "in process:"
-#~ msgstr ""
-#~ "Вы запросили код входа для аккаунта, "
-#~ "привязанного к <strong>%(email)s</strong>. "
-#~ "Используйте следующий код для завершения "
-#~ "входа:"
-
-#~ msgid "Hello, %(email)s!"
-#~ msgstr "Здравствуйте, %(email)s!"
-
