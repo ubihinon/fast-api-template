@@ -87,7 +87,10 @@ class AuthMagicLinkService:
         except exceptions.UserNotExists:
             raise UserNotFoundException(email)
 
-        failed_attempts_since = datetime.datetime.now(datetime.UTC) - users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+        latest_code_created_at = await self.login_code_repository.get_latest_created_at(user.id)
+        failed_attempts_since = latest_code_created_at or (
+            datetime.datetime.now(datetime.UTC) - users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+        )
         failed_attempts_count = await self.login_attempt_repository.get_failed_attempts_count(
             user.id, since=failed_attempts_since
         )
