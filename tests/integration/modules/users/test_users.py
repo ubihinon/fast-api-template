@@ -1,0 +1,69 @@
+"""Integration tests for /users/me endpoints (fastapi-users).
+
+Endpoints under test:
+    GET  /api/v1/users/me
+    PATCH /api/v1/users/me
+"""
+import pytest
+from httpx import AsyncClient
+
+from modules.users.dtos.user import UserRead
+from modules.users.models import User
+
+ME_URL = "/api/v1/users/me"
+
+
+@pytest.mark.integration
+class TestGetMe:
+    async def test_authenticated_returns_user_data(
+        self, client: AsyncClient, existing_user: User, auth_headers: dict
+    ):
+        response = await client.get(ME_URL, headers=auth_headers)
+
+        assert response.status_code == 200
+        assert "application/json" in response.headers["content-type"]
+        body = UserRead.model_validate(response.json())
+        assert body.id == existing_user.id
+        assert body.email == existing_user.email
+        assert body.is_active is True
+
+    @pytest.mark.parametrize("headers", [
+        {},
+        {"Authorization": "Bearer invalid-token-xyz"},
+        {"Authorization": "Bearer"},
+        {"Authorization": "Token abc123"},
+    ])
+    async def test_invalid_auth_returns_401(self, client: AsyncClient, headers: dict):
+        response = await client.get(ME_URL, headers=headers)
+
+        assert response.status_code == 401
+
+
+@pytest.mark.integration
+class TestPatchMe:
+    async def test_unauthenticated_returns_401(self, client: AsyncClient):
+        response = await client.patch(ME_URL, json={})
+
+        assert response.status_code == 401
+
+    async def test_update_password_returns_200(
+        self, client: AsyncClient, existing_user: User, auth_headers: dict
+    ):
+        response = await client.patch(
+            ME_URL,
+            json={"password": "new_secure_password_123"},
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 200
+        body = UserRead.model_validate(response.json())
+        assert body.email == existing_user.email
+
+    async def test_empty_patch_returns_200(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        """PATCH with no fields should be a no-op and return current user."""
+        response = await client.patch(ME_URL, json={}, headers=auth_headers)
+
+        assert response.status_code == 200
+        UserRead.model_validate(response.json())

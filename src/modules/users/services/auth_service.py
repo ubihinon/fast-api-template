@@ -1,0 +1,156 @@
+import datetime
+import logging
+import secrets
+
+from fastapi_users import exceptions
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.i18n import _
+from modules.users.dtos.auth import AccessTokenSchema
+from modules.users.dtos.user import UserCreate
+from modules.users.exceptions import (
+    AccessTokenNotFound,
+    AuthErrorException,
+    LoginCodeInvalidException,
+    LoginMaxNumberAttemptsException,
+    UserNotFoundException,
+)
+from modules.users.manager import UserManager
+from modules.users.models.user import User
+from modules.users.ports import UserNotificationPort
+from modules.users.repositories import AccessTokenRepository
+from modules.users.repositories.login_attempt import LoginAttemptRepository
+from modules.users.repositories.login_code import LoginCodeRepository
+from modules.users.schemas.responses import LoginAttemptSchema, LoginHistoryPageSchema, SessionSchema
+from modules.users.settings import users_settings
+
+logger = logging.getLogger(__name__)
+
+
+class AuthMagicLinkService:
+    def __init__(
+        self,
+        session: AsyncSession,
+        login_code_repository: LoginCodeRepository,
+        login_attempt_repository: LoginAttemptRepository,
+        access_token_repository: AccessTokenRepository,
+        email_service: UserNotificationPort,
+        user_manager: UserManager,
+        ip_address: str | None,
+        user_agent: str | None = None,
+    ):
+        self.session = session
+        self.login_code_repository = login_code_repository
+        self.login_attempt_repository = login_attempt_repository
+        self.access_token_repository = access_token_repository
+        self.email_service = email_service
+        self.user_manager = user_manager
+        self.ip_address = ip_address
+        self.user_agent = user_agent
+
+    async def login(self, email: str) -> User:
+        try:
+            user = await self.user_manager.get_by_email(email)
+        except exceptions.UserNotExists:
+            user_create = UserCreate(
+                email=email,
+                password=secrets.token_urlsafe(32),
+                is_active=True,
+                is_verified=True
+            )
+            user = await self.user_manager.create(user_create)
+
+        if not user.is_active:
+            raise AuthErrorException(_("User %(email)s is not active") % {"email": email})
+
+        await self.login_code_repository.deactivate_all_for_user(user.id)
+        login_code = await self.login_code_repository.create(
+            user_id=user.id,
+            code=self.generate_code(),
+            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA,
+        )
+        await self.session.commit()
+
+        logger.info(f"Login code sent to {user.email}")
+        self.email_service.send_login_code_email_task(
+            user.email, login_code.code, users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+        )
+
+        return user
+
+    async def verify_login_code(self, email: str, code: str) -> AccessTokenSchema:
+        try:
+            user = await self.user_manager.get_by_email(email)
+        except exceptions.UserNotExists:
+            raise UserNotFoundException(email)
+
+        latest_code_created_at = await self.login_code_repository.get_latest_created_at(user.id)
+        failed_attempts_since = latest_code_created_at or (
+            datetime.datetime.now(datetime.UTC) - users_settings.LOGIN_CODE_EXPIRES_IN_TIMEDELTA
+        )
+        failed_attempts_count = await self.login_attempt_repository.get_failed_attempts_count(
+            user.id, since=failed_attempts_since
+        )
+
+        if failed_attempts_count >= users_settings.MAX_LOGIN_ATTEMPTS:
+            msg = _("Maximum number of attempts exceeded (%(max)s). Try again later") % {
+                "max": users_settings.MAX_LOGIN_ATTEMPTS
+            }
+            raise LoginMaxNumberAttemptsException(msg)
+
+        login_code = await self.login_code_repository.get_active_and_deactivate(code, user.id)
+        if not login_code:
+            await self.login_attempt_repository.create(
+                user.id, user.email, code, False, ip_address=self.ip_address, user_agent=self.user_agent
+            )
+            await self.session.commit()
+            raise LoginCodeInvalidException()
+
+        await self.login_attempt_repository.create(
+            user.id, user.email, code, True, ip_address=self.ip_address, user_agent=self.user_agent
+        )
+
+        logger.info(f"✓ Code is correct for user_id={user.id}")
+
+        access_token = await self.access_token_repository.create(
+            token=secrets.token_urlsafe(48),
+            user_id=user.id,
+            expires_at=datetime.datetime.now(datetime.UTC) + users_settings.ACCESS_TOKEN_EXPIRES_IN_TIMEDELTA,
+            ip_address=self.ip_address,
+        )
+
+        logger.info(f"✓ User {user.email} logged in via Magic Link")
+
+        await self.session.commit()
+
+        return AccessTokenSchema.model_validate(access_token)
+
+    async def get_login_history(
+        self, user_id: int, limit: int = 50, cursor: int | None = None
+    ) -> LoginHistoryPageSchema:
+        attempts = await self.login_attempt_repository.get_history(user_id, limit=limit, cursor=cursor)
+        items = [LoginAttemptSchema.model_validate(a) for a in attempts]
+        next_cursor = items[-1].id if len(items) == limit else None
+        return LoginHistoryPageSchema(items=items, next_cursor=next_cursor)
+
+    async def revoke_session(self, user_id: int, token_id: int) -> None:
+        if not await self.access_token_repository.deactivate_token_by_id(user_id, token_id):
+            raise AccessTokenNotFound(_("Session not found"))
+        await self.session.commit()
+
+    async def get_sessions(self, user_id: int) -> list[SessionSchema]:
+        tokens = await self.access_token_repository.get_active_sessions(user_id)
+        return [SessionSchema.model_validate(token) for token in tokens]
+
+    async def logout(self, user_id: int, token: str | None = None) -> None:
+        if token:
+            if not await self.access_token_repository.deactivate_token(user_id, token):
+                raise AccessTokenNotFound(_("Token not found"))
+        else:
+            await self.access_token_repository.deactivate_all_tokens(user_id)
+        await self.session.commit()
+
+    @staticmethod
+    def generate_code():
+        random_number = secrets.randbelow(1000000)
+        return str(random_number).zfill(6)
