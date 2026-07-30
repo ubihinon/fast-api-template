@@ -24,6 +24,7 @@ LOGOUT_URL = "/api/v1/auth/magic/logout"
 LOGOUT_ALL_URL = "/api/v1/auth/magic/logout-all"
 SESSIONS_URL = "/api/v1/auth/sessions"
 REVOKE_SESSION_URL = "/api/v1/auth/sessions/{token_id}"
+LOGIN_HISTORY_URL = "/api/v1/auth/login-history"
 
 
 # ---------------------------------------------------------------------------
@@ -520,6 +521,143 @@ class TestRevokeSession:
         # second attempt — token is already invalid so we get 401, not 404
         second = await client.delete(REVOKE_SESSION_URL.format(token_id=token_id))
         assert second.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/auth/login-history
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+class TestGetLoginHistory:
+    async def test_unauthenticated_returns_401(self, client: AsyncClient):
+        response = await client.get(LOGIN_HISTORY_URL)
+
+        assert response.status_code == 401
+
+    async def test_empty_history_returns_empty_list(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        response = await client.get(LOGIN_HISTORY_URL, headers=auth_headers)
+
+        assert response.status_code == 200
+        assert response.json() == []
+
+    async def test_successful_login_appears_in_history(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        email = "history_ok@example.com"
+        await client.post(LOGIN_URL, json={"email": email})
+        code = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token = (await client.post(VERIFY_URL, json={"email": email, "code": code})).json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = await client.get(LOGIN_HISTORY_URL, headers=headers)
+
+        assert response.status_code == 200
+        history = response.json()
+        assert len(history) >= 1
+        entry = history[0]
+        assert entry["is_correct"] is True
+        assert "id" in entry
+        assert "created_at" in entry
+        assert "ip_address" in entry
+        assert "user_agent" in entry
+        assert "code_entered" not in entry
+        assert "email" not in entry
+
+    async def test_failed_attempt_appears_in_history(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        email = "history_fail@example.com"
+        await client.post(LOGIN_URL, json={"email": email})
+        code = mock_email_service.send_login_code_email_task.call_args[0][1]
+
+        await client.post(VERIFY_URL, json={"email": email, "code": "000000"})  # wrong code
+
+        # login again to get a valid token
+        await client.post(LOGIN_URL, json={"email": email})
+        code2 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token = (await client.post(VERIFY_URL, json={"email": email, "code": code2})).json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = await client.get(LOGIN_HISTORY_URL, headers=headers)
+        history = response.json()
+
+        failed = [e for e in history if not e["is_correct"]]
+        assert len(failed) >= 1
+
+    async def test_history_ordered_newest_first(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        email = "history_order@example.com"
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code1 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        await client.post(VERIFY_URL, json={"email": email, "code": "000000"})  # fail
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code2 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token = (await client.post(VERIFY_URL, json={"email": email, "code": code2})).json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        history = (await client.get(LOGIN_HISTORY_URL, headers=headers)).json()
+        assert len(history) >= 2
+        dates = [entry["created_at"] for entry in history]
+        assert dates == sorted(dates, reverse=True)
+
+    async def test_pagination_limit(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        email = "history_page@example.com"
+
+        # produce 3 attempts (2 fails + 1 success)
+        await client.post(LOGIN_URL, json={"email": email})
+        await client.post(VERIFY_URL, json={"email": email, "code": "000000"})
+        await client.post(LOGIN_URL, json={"email": email})
+        await client.post(VERIFY_URL, json={"email": email, "code": "000000"})
+        await client.post(LOGIN_URL, json={"email": email})
+        code = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token = (await client.post(VERIFY_URL, json={"email": email, "code": code})).json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = await client.get(LOGIN_HISTORY_URL, headers=headers, params={"limit": 2})
+
+        assert response.status_code == 200
+        assert len(response.json()) == 2
+
+    @pytest.mark.parametrize("params,expected_status", [
+        ({"limit": 0}, 422),
+        ({"limit": 201}, 422),
+        ({"offset": -1}, 422),
+    ])
+    async def test_invalid_pagination_params_return_422(
+        self, client: AsyncClient, auth_headers: dict, params: dict, expected_status: int
+    ):
+        response = await client.get(LOGIN_HISTORY_URL, headers=auth_headers, params=params)
+
+        assert response.status_code == expected_status
+
+    async def test_user_sees_only_own_history(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        """User A's history must not contain User B's attempts."""
+        email_a = "history_isolation_a@example.com"
+        email_b = "history_isolation_b@example.com"
+
+        await client.post(LOGIN_URL, json={"email": email_a})
+        code_a = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token_a = (await client.post(VERIFY_URL, json={"email": email_a, "code": code_a})).json()["access_token"]
+
+        await client.post(LOGIN_URL, json={"email": email_b})
+        code_b = mock_email_service.send_login_code_email_task.call_args[0][1]
+        (await client.post(VERIFY_URL, json={"email": email_b, "code": code_b}))
+
+        headers_a = {"Authorization": f"Bearer {token_a}"}
+        history_a = (await client.get(LOGIN_HISTORY_URL, headers=headers_a)).json()
+
+        assert all(entry["id"] is not None for entry in history_a)
+        # user A has exactly 1 successful attempt (their own login)
+        assert len([e for e in history_a if e["is_correct"]]) == 1
 
 
 # ---------------------------------------------------------------------------

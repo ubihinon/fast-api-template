@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 
 from core.i18n import _
 from core.limiter import limiter
@@ -21,6 +21,7 @@ from modules.users.schemas.requests import (
 )
 from modules.users.schemas.responses import (
     LoginAccessTokenResponseSchema,
+    LoginAttemptSchema,
     LoginResponse,
     SessionSchema,
 )
@@ -93,6 +94,18 @@ async def logout(
             status_code=500,
             detail=_("Something went wrong"),
         )
+
+
+@router.get("/login-history", response_model=list[LoginAttemptSchema])
+@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
+async def get_login_history(
+    request: Request,
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> list[LoginAttemptSchema]:
+    return await auth_service.get_login_history(user.id, limit=limit, offset=offset)
 
 
 @router.delete("/sessions/{token_id}", status_code=status.HTTP_204_NO_CONTENT)

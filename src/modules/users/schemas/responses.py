@@ -19,3 +19,13 @@ class SessionSchema(schemas.BaseModel):
     ip_address: str | None
 
     model_config = {"from_attributes": True}
+
+
+class LoginAttemptSchema(schemas.BaseModel):
+    id: int
+    created_at: datetime.datetime
+    is_correct: bool
+    ip_address: str | None
+    user_agent: str | None
+
+    model_config = {"from_attributes": True}
