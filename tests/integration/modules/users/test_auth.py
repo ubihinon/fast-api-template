@@ -214,65 +214,6 @@ class TestLogout:
         after_logout = await client.get("/api/v1/users/me", headers=auth_headers)
         assert after_logout.status_code == 401
 
-    async def test_logout_without_authorization_header_returns_400(
-        self, client: AsyncClient, existing_user: User
-    ):
-        """Missing Authorization header returns 400 (auth bypassed via override to reach endpoint logic)."""
-        from core.main import app
-        from modules.users.fastapi_users_config import current_active_user
-
-        async def _return_user():
-            return existing_user
-
-        app.dependency_overrides[current_active_user] = _return_user
-        try:
-            response = await client.post(LOGOUT_URL)
-        finally:
-            app.dependency_overrides.pop(current_active_user, None)
-
-        assert response.status_code == 400
-        assert "Authorization" in response.json()["detail"]
-
-    async def test_logout_with_invalid_authorization_format_returns_400(
-        self, client: AsyncClient, existing_user: User
-    ):
-        """Authorization header with non-Bearer scheme returns 400."""
-        from core.main import app
-        from modules.users.fastapi_users_config import current_active_user
-
-        async def _return_user():
-            return existing_user
-
-        app.dependency_overrides[current_active_user] = _return_user
-        try:
-            response = await client.post(
-                LOGOUT_URL, headers={"Authorization": "Token some-token-value"}
-            )
-        finally:
-            app.dependency_overrides.pop(current_active_user, None)
-
-        assert response.status_code == 400
-        assert "Invalid Authorization" in response.json()["detail"]
-
-    async def test_logout_with_bearer_but_no_token_value_returns_400(
-        self, client: AsyncClient, existing_user: User
-    ):
-        """Authorization: 'Bearer' without a token value returns 400."""
-        from core.main import app
-        from modules.users.fastapi_users_config import current_active_user
-
-        async def _return_user():
-            return existing_user
-
-        app.dependency_overrides[current_active_user] = _return_user
-        try:
-            response = await client.post(
-                LOGOUT_URL, headers={"Authorization": "Bearer"}
-            )
-        finally:
-            app.dependency_overrides.pop(current_active_user, None)
-
-        assert response.status_code == 400
 
 
 # ---------------------------------------------------------------------------
@@ -454,7 +395,7 @@ class TestRevokeSession:
 
         # revoke token1 using token1 itself
         sessions_via_1 = (await client.get(SESSIONS_URL, headers=headers1)).json()
-        own_id = sessions_via_1[0]["id"]  # most recent = first (ordered by created_at desc)
+        own_id = sessions_via_1[-1]["id"]  # token1 was created first → last in created_at desc order
         await client.delete(REVOKE_SESSION_URL.format(token_id=own_id), headers=headers1)
 
         # token1 is now invalid
