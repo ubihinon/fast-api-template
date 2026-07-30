@@ -3,6 +3,7 @@ import datetime
 import secrets
 from collections.abc import Callable, Awaitable
 
+import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -61,7 +62,7 @@ async def auth_headers(user_token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {user_token}"}
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 def seed_user_with_code(
     db_session: AsyncSession,
 ) -> Callable[..., Awaitable[User]]:
