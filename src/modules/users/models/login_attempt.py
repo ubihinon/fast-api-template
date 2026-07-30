@@ -10,7 +10,10 @@ from core.models.types import UserIdType
 class LoginAttempt(Base):
     __tablename__ = "login_attempt"
     __table_args__ = (
-        Index("ix_login_attempt_user_ip_correct_created", "user_id", "ip_address", "is_correct", "created_at"),
+        Index(
+            "ix_login_attempt_user_ip_correct_created",
+            "user_id", "ip_address", "is_correct", "created_at"
+        ),
         {"schema": "users", "extend_existing": True},
     )
 

@@ -21,7 +21,6 @@ from modules.users.ports import UserNotificationPort
 from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
-from modules.users.repositories.user import UserRepository
 from modules.users.schemas.responses import LoginAttemptSchema, LoginHistoryPageSchema, SessionSchema
 from modules.users.settings import users_settings
 
@@ -32,7 +31,6 @@ class AuthMagicLinkService:
     def __init__(
         self,
         session: AsyncSession,
-        user_repository: UserRepository,
         login_code_repository: LoginCodeRepository,
         login_attempt_repository: LoginAttemptRepository,
         access_token_repository: AccessTokenRepository,
@@ -42,7 +40,6 @@ class AuthMagicLinkService:
         user_agent: str | None = None,
     ):
         self.session = session
-        self.user_repository = user_repository
         self.login_code_repository = login_code_repository
         self.login_attempt_repository = login_attempt_repository
         self.access_token_repository = access_token_repository

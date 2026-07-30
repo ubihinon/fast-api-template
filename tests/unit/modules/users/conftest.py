@@ -11,7 +11,6 @@ from modules.users.models import AccessToken, LoginCode, User
 from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
-from modules.users.repositories.user import UserRepository
 from modules.users.services.auth_service import AuthMagicLinkService
 from modules.users.settings import users_settings
 
@@ -94,11 +93,6 @@ def mock_user_manager():
 
 
 @pytest.fixture
-def mock_user_repo():
-    return AsyncMock(spec=UserRepository)
-
-
-@pytest.fixture
 def mock_login_code_repo():
     repo = AsyncMock(spec=LoginCodeRepository)
     repo.get_latest_created_at.return_value = None
@@ -131,7 +125,6 @@ def mock_email_service():
 @pytest.fixture
 def auth_service(
     mock_session,
-    mock_user_repo,
     mock_login_code_repo,
     mock_login_attempt_repo,
     mock_access_token_repo,
@@ -140,7 +133,6 @@ def auth_service(
 ) -> AuthMagicLinkService:
     return AuthMagicLinkService(
         session=mock_session,
-        user_repository=mock_user_repo,
         login_code_repository=mock_login_code_repo,
         login_attempt_repository=mock_login_attempt_repo,
         access_token_repository=mock_access_token_repo,
