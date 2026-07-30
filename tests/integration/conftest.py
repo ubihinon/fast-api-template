@@ -28,7 +28,7 @@ from sqlalchemy.pool import NullPool
 from core.database import get_session
 from core.main import app
 from core.settings import settings
-from modules.notifications.dependencies import get_users_email_service
+from core.dependencies import get_user_notification_service
 from modules.notifications.services.users_email import UsersEmailService
 
 # ---------------------------------------------------------------------------
@@ -122,7 +122,7 @@ async def client(
     app.state.limiter = Limiter(key_func=get_remote_address, enabled=False)
     _core_limiter.limiter.enabled = False
     app.dependency_overrides[get_session] = override_get_session
-    app.dependency_overrides[get_users_email_service] = override_get_email_service
+    app.dependency_overrides[get_user_notification_service] = override_get_email_service
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
