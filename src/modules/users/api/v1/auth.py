@@ -69,20 +69,9 @@ async def login_with_magic_link(
 async def logout(
     user:  Annotated[User, Depends(current_active_user)],
     auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
-    authorization: Annotated[str | None, Header()] = None,
+    authorization: Annotated[str, Header()],
 ) -> None:
-    token = None
-    if authorization:
-        parts = authorization.split(" ")
-        if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=_("Invalid Authorization header format"),
-            )
-        token = parts[1]
-
-    if token is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=_("Authorization header is missing"))
+    token = authorization.split(" ")[1]
 
     try:
         await auth_service.logout(user.id, token)
