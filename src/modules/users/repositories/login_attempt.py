@@ -32,14 +32,15 @@ class LoginAttemptRepository(BaseRepository):
     async def get_history(
         self, user_id: UserIdType, limit: int = 50, cursor: int | None = None
     ) -> list[LoginAttempt]:
+        filters = [LoginAttempt.user_id == user_id]
+        if cursor is not None:
+            filters.append(LoginAttempt.id < cursor)
         query = (
             select(LoginAttempt)
-            .where(LoginAttempt.user_id == user_id)
+            .where(*filters)
             .order_by(LoginAttempt.id.desc())
             .limit(limit)
         )
-        if cursor is not None:
-            query = query.where(LoginAttempt.id < cursor)
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
