@@ -22,7 +22,7 @@ from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
 from modules.users.repositories.user import UserRepository
-from modules.users.schemas.responses import LoginAttemptSchema, SessionSchema
+from modules.users.schemas.responses import LoginAttemptSchema, LoginHistoryPageSchema, SessionSchema
 from modules.users.settings import users_settings
 
 logger = logging.getLogger(__name__)
@@ -126,10 +126,12 @@ class AuthMagicLinkService:
         return AccessTokenSchema.model_validate(access_token)
 
     async def get_login_history(
-        self, user_id: int, limit: int = 50, offset: int = 0
-    ) -> list[LoginAttemptSchema]:
-        attempts = await self.login_attempt_repository.get_history(user_id, limit=limit, offset=offset)
-        return [LoginAttemptSchema.model_validate(a) for a in attempts]
+        self, user_id: int, limit: int = 50, cursor: int | None = None
+    ) -> LoginHistoryPageSchema:
+        attempts = await self.login_attempt_repository.get_history(user_id, limit=limit, cursor=cursor)
+        items = [LoginAttemptSchema.model_validate(a) for a in attempts]
+        next_cursor = items[-1].id if len(items) == limit else None
+        return LoginHistoryPageSchema(items=items, next_cursor=next_cursor)
 
     async def revoke_session(self, user_id: int, token_id: int) -> None:
         if not await self.access_token_repository.deactivate_token_by_id(user_id, token_id):

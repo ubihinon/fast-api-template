@@ -30,15 +30,17 @@ class LoginAttemptRepository(BaseRepository):
         return login_attempt
 
     async def get_history(
-        self, user_id: UserIdType, limit: int = 50, offset: int = 0
+        self, user_id: UserIdType, limit: int = 50, cursor: int | None = None
     ) -> list[LoginAttempt]:
-        result = await self.session.execute(
+        query = (
             select(LoginAttempt)
             .where(LoginAttempt.user_id == user_id)
-            .order_by(LoginAttempt.created_at.desc())
+            .order_by(LoginAttempt.id.desc())
             .limit(limit)
-            .offset(offset)
         )
+        if cursor is not None:
+            query = query.where(LoginAttempt.id < cursor)
+        result = await self.session.execute(query)
         return list(result.scalars().all())
 
     async def get_failed_attempts_count(

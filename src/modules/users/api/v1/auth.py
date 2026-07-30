@@ -21,7 +21,7 @@ from modules.users.schemas.requests import (
 )
 from modules.users.schemas.responses import (
     LoginAccessTokenResponseSchema,
-    LoginAttemptSchema,
+    LoginHistoryPageSchema,
     LoginResponse,
     SessionSchema,
 )
@@ -96,16 +96,16 @@ async def logout(
         )
 
 
-@router.get("/login-history", response_model=list[LoginAttemptSchema])
+@router.get("/login-history", response_model=LoginHistoryPageSchema)
 @limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
 async def get_login_history(
     request: Request,
     user: Annotated[User, Depends(current_active_user)],
     auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
-    offset: Annotated[int, Query(ge=0)] = 0,
-) -> list[LoginAttemptSchema]:
-    return await auth_service.get_login_history(user.id, limit=limit, offset=offset)
+    cursor: Annotated[int | None, Query(ge=1)] = None,
+) -> LoginHistoryPageSchema:
+    return await auth_service.get_login_history(user.id, limit=limit, cursor=cursor)
 
 
 @router.delete("/sessions/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
