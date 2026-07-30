@@ -74,7 +74,10 @@ async def logout(
     if authorization:
         parts = authorization.split(" ")
         if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1]:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=_("Invalid Authorization header format"))
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=_("Invalid Authorization header format"),
+            )
         token = parts[1]
 
     if token is None:
