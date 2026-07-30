@@ -100,7 +100,9 @@ def mock_user_repo():
 
 @pytest.fixture
 def mock_login_code_repo():
-    return AsyncMock(spec=LoginCodeRepository)
+    repo = AsyncMock(spec=LoginCodeRepository)
+    repo.get_latest_created_at.return_value = None
+    return repo
 
 
 @pytest.fixture

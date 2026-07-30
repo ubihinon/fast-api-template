@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import and_, update
+from sqlalchemy import and_, select, update
 
 from core.models.types import UserIdType
 from modules.users.models import LoginCode
@@ -34,6 +34,16 @@ class LoginCodeRepository(BaseRepository):
             .returning(LoginCode)
         )
         await self.session.flush()
+        return result.scalar_one_or_none()
+
+    async def get_latest_created_at(self, user_id: UserIdType) -> datetime.datetime | None:
+        """Return created_at of the most recent active code for the user."""
+        result = await self.session.execute(
+            select(LoginCode.created_at)
+            .where(LoginCode.user_id == user_id, LoginCode.is_active.is_(True))
+            .order_by(LoginCode.created_at.desc())
+            .limit(1)
+        )
         return result.scalar_one_or_none()
 
     async def deactivate_all_for_user(self, user_id: UserIdType) -> None:
