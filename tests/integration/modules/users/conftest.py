@@ -1,14 +1,14 @@
 """Fixtures for users integration tests."""
 import datetime
 import secrets
-from collections.abc import Callable, Awaitable
+from collections.abc import Awaitable, Callable
 
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from modules.users.settings import users_settings
 from modules.users.models import AccessToken, LoginCode, User
+from modules.users.settings import users_settings
 
 
 @pytest_asyncio.fixture

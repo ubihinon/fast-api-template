@@ -5,7 +5,6 @@ from fastapi_users import exceptions as fu_exc
 from modules.users.exceptions import AuthErrorException
 from modules.users.services.auth_service import AuthMagicLinkService
 
-
 EMAIL = "test@example.com"
 
 

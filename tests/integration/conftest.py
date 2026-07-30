@@ -13,7 +13,7 @@ Environment:
   for backwards compatibility with docker-compose setups.
 """
 import os
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -22,7 +22,7 @@ from httpx import ASGITransport, AsyncClient
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from core.database import get_session
@@ -44,7 +44,7 @@ INTEGRATION_DB_URL = os.getenv(
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def integration_engine():
     from core.models.base import Base
-    from modules.users.models import User, LoginCode, AccessToken  # noqa: F401 — register models
+    from modules.users.models import AccessToken, LoginCode, User  # noqa: F401 — register models
     from modules.users.models.login_attempt import LoginAttempt  # noqa: F401
 
     # NullPool: no connection reuse between sessions — prevents asyncpg
@@ -98,7 +98,7 @@ def mock_email_service() -> MagicMock:
 @pytest_asyncio.fixture
 async def client(
     integration_session_factory, mock_email_service
-) -> AsyncGenerator[AsyncClient, None]:
+) -> AsyncGenerator[AsyncClient]:
     """AsyncClient with all external dependencies overridden."""
 
     async def override_get_session():
@@ -140,7 +140,7 @@ async def client(
 # ---------------------------------------------------------------------------
 
 @pytest_asyncio.fixture
-async def db_session(integration_session_factory) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(integration_session_factory) -> AsyncGenerator[AsyncSession]:
     """Session for inserting test data directly into the DB."""
     async with integration_session_factory() as session:
         try:

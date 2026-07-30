@@ -12,7 +12,6 @@ from modules.users.exceptions import (
 from modules.users.services.auth_service import AuthMagicLinkService
 from modules.users.settings import users_settings
 
-
 EMAIL = "test@example.com"
 
 
