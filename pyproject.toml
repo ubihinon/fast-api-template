@@ -1,0 +1,90 @@
+[project]
+name = "fasapitemplate"
+version = "0.1.0"
+description = "FastAPI starter"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.138.0",
+    "fastapi-mail>=1.6.5",
+    "fastapi-users>=15.0.5",
+    "fastapi-users-db-sqlalchemy>=7.0.0",
+    "flower>=2.0.1",
+    "itsdangerous>=2.2.0",
+    "psycopg2-binary>=2.9.12",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.0.0",
+    "redis>=8.0.1",
+    "requests>=2.34.2",
+    "sentry-sdk[fastapi]>=2.63.0",
+    "slowapi>=0.1.10",
+    "sqlalchemy>=2.0.51",
+    "starlette-admin>=0.17.1",
+    "typer>=0.26.8",
+    "babel==2.18.0",
+    "uvicorn>=0.49.0",
+]
+
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__main__.py",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "modules", "cli"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/core/main.py" = ["E402"]
+
+[tool.importlinter]
+root_packages = ["modules", "core"]
+include_external_packages = true
+source_directories = ["src"]
+
+[[tool.importlinter.contracts]]
+name = "Modules must not import each other directly"
+type = "independence"
+modules = [
+    "modules.users",
+    "modules.notifications",
+]
+ignore_imports = [
+    "core.dependencies -> modules.notifications.dependencies",
+    "core.dependencies -> modules.users.ports",
+]
+
+[tool.mypy]
+python_version = "3.13"
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = "core.settings"
+disable_error_code = ["call-arg"]
+
+[[tool.mypy.overrides]]
+module = "modules.users.auth_backend"
+disable_error_code = ["type-var"]
+
+[dependency-groups]
+dev = [
+    "celery-types>=0.26.0",
+    "import-linter>=2.13",
+    "mypy>=2.3.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.0",
+]
