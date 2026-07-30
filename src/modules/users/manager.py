@@ -4,8 +4,8 @@ from fastapi import Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
 
 from core.models.types import UserIdType
-from modules.notifications.services.users_email import UsersEmailService
 from modules.users.models import User
+from modules.users.ports import UserNotificationPort
 from modules.users.settings import users_settings
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, UserIdType]):
     reset_password_token_secret = users_settings.RESET_PASSWORD_TOKEN_SECRET
     verification_token_secret = users_settings.VERIFICATION_TOKEN_SECRET
 
-    def __init__(self, user_db, email_service: UsersEmailService):
+    def __init__(self, user_db, email_service: UserNotificationPort):
         super().__init__(user_db)
         self.email_service = email_service
 

@@ -6,7 +6,6 @@ from fastapi_users import exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.i18n import _
-from modules.notifications.services.users_email import UsersEmailService
 from modules.users.dtos.auth import AccessTokenSchema
 from modules.users.dtos.user import UserCreate
 from modules.users.schemas.responses import SessionSchema
@@ -19,6 +18,7 @@ from modules.users.exceptions import (
 )
 from modules.users.manager import UserManager
 from modules.users.models.user import User
+from modules.users.ports import UserNotificationPort
 from modules.users.repositories import AccessTokenRepository
 from modules.users.repositories.login_attempt import LoginAttemptRepository
 from modules.users.repositories.login_code import LoginCodeRepository
@@ -36,7 +36,7 @@ class AuthMagicLinkService:
         login_code_repository: LoginCodeRepository,
         login_attempt_repository: LoginAttemptRepository,
         access_token_repository: AccessTokenRepository,
-        email_service: UsersEmailService,
+        email_service: UserNotificationPort,
         user_manager: UserManager,
         ip_address: str | None,
         user_agent: str | None = None,
