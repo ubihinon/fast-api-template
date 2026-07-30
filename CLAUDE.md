@@ -95,8 +95,20 @@ Modules follow a layered pattern: **router → service → repository → model*
   - `auth_backend.py` — fastapi-users `AuthenticationBackend` wired to the DB token strategy; `TouchingDatabaseStrategy` subclass lazily updates `last_used_at` on successful auth
   - `dependencies.py` — Module-level FastAPI dependencies
   - `api/dependencies.py` — Endpoint-level dependencies (e.g. `get_auth_magic_link_service`)
-  - `api/v1/auth.py` — Auth endpoints: `POST /auth/magic/login`, `/auth/magic/verify-login`, `/auth/magic/logout`, `/auth/magic/logout-all`, `GET /auth/sessions`, `DELETE /auth/sessions/{token_id}`, `GET /auth/login-history`
-  - `api/v1/users.py` — User management endpoints (`/me`, `/{id}` via fastapi-users router)
+  - `api/v1/auth.py` — Auth endpoints:
+    - `POST /api/v1/auth/magic/login` — request 6-digit code (public)
+    - `POST /api/v1/auth/magic/verify-login` — verify code, receive Bearer token (public)
+    - `POST /api/v1/auth/magic/logout` — invalidate current token
+    - `POST /api/v1/auth/magic/logout-all` — invalidate all tokens (all devices)
+    - `GET /api/v1/auth/sessions` — list active sessions
+    - `DELETE /api/v1/auth/sessions/{token_id}` — revoke a specific session (IDOR-safe)
+    - `GET /api/v1/auth/login-history` — cursor-based paginated login attempt history
+  - `api/v1/users.py` — User management endpoints (via fastapi-users router):
+    - `GET /api/v1/users/me` — get current user
+    - `PATCH /api/v1/users/me` — update current user
+    - `GET /api/v1/users/{id}` — get user by ID (superuser only)
+    - `PATCH /api/v1/users/{id}` — update user by ID (superuser only)
+    - `DELETE /api/v1/users/{id}` — delete user (superuser only)
   - `fastapi_users_config.py` — `fastapi_users` instance and `current_active_user` dependency
   - `settings.py` — Module-level constants (token/code TTLs, max login attempts, rate limit strings)
 

@@ -1,11 +1,95 @@
-# Test your FastAPI endpoints
+### === AUTH ===
 
-GET http://127.0.0.1:8000/
-Accept: application/json
+### 1. Request magic link code (creates user if not exists)
+POST http://127.0.0.1:8000/api/v1/auth/magic/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
 
 ###
 
-GET http://127.0.0.1:8000/hello/User
-Accept: application/json
+### 2. Verify code and get Bearer token
+POST http://127.0.0.1:8000/api/v1/auth/magic/verify-login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "code": "123456"
+}
+
+###
+
+### 3. Logout (invalidate current token)
+POST http://127.0.0.1:8000/api/v1/auth/magic/logout
+Authorization: Bearer <token>
+
+###
+
+### 4. Logout all devices
+POST http://127.0.0.1:8000/api/v1/auth/magic/logout-all
+Authorization: Bearer <token>
+
+###
+
+### 5. List active sessions
+GET http://127.0.0.1:8000/api/v1/auth/sessions
+Authorization: Bearer <token>
+
+###
+
+### 6. Revoke a specific session
+DELETE http://127.0.0.1:8000/api/v1/auth/sessions/1
+Authorization: Bearer <token>
+
+###
+
+### 7. Login history (cursor-based pagination)
+GET http://127.0.0.1:8000/api/v1/auth/login-history?limit=50
+Authorization: Bearer <token>
+
+###
+
+
+### === USERS ===
+
+### 8. Get current user
+GET http://127.0.0.1:8000/api/v1/users/me
+Authorization: Bearer <token>
+
+###
+
+### 9. Update current user
+PATCH http://127.0.0.1:8000/api/v1/users/me
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "email": "newemail@example.com"
+}
+
+###
+
+### 10. Get user by ID (superuser only)
+GET http://127.0.0.1:8000/api/v1/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer <token>
+
+###
+
+### 11. Update user by ID (superuser only)
+PATCH http://127.0.0.1:8000/api/v1/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "is_active": true
+}
+
+###
+
+### 12. Delete user (superuser only)
+DELETE http://127.0.0.1:8000/api/v1/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer <token>
 
 ###
