@@ -13,7 +13,6 @@ from modules.users.repositories import (
     AccessTokenRepository,
     LoginAttemptRepository,
     LoginCodeRepository,
-    UserRepository,
 )
 from modules.users.services.auth_service import AuthMagicLinkService
 
@@ -23,11 +22,9 @@ async def get_auth_magic_link_service(
     session: Annotated[AsyncSession, Depends(get_session)],
     email_service: Annotated[UserNotificationPort, Depends(get_user_notification_service)],
 ) -> AuthMagicLinkService:
-    user_repository = UserRepository(session)
     user_manager = UserManager(User.get_db(session), email_service)
     return AuthMagicLinkService(
         session=session,
-        user_repository=user_repository,
         login_code_repository=LoginCodeRepository(session),
         login_attempt_repository=LoginAttemptRepository(session),
         access_token_repository=AccessTokenRepository(session),
