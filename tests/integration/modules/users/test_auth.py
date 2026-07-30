@@ -23,6 +23,7 @@ VERIFY_URL = "/api/v1/auth/magic/verify-login"
 LOGOUT_URL = "/api/v1/auth/magic/logout"
 LOGOUT_ALL_URL = "/api/v1/auth/magic/logout-all"
 SESSIONS_URL = "/api/v1/auth/sessions"
+REVOKE_SESSION_URL = "/api/v1/auth/sessions/{token_id}"
 
 
 # ---------------------------------------------------------------------------
@@ -400,6 +401,125 @@ class TestLogoutAll:
         # both tokens are now invalid
         assert (await client.get("/api/v1/users/me", headers=headers1)).status_code == 401
         assert (await client.get("/api/v1/users/me", headers=headers2)).status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/v1/auth/sessions/{token_id}
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+class TestRevokeSession:
+    async def test_unauthenticated_returns_401(self, client: AsyncClient):
+        response = await client.delete(REVOKE_SESSION_URL.format(token_id=1))
+
+        assert response.status_code == 401
+
+    async def test_revoke_own_session_returns_204(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        email = "revoke_own@example.com"
+        await client.post(LOGIN_URL, json={"email": email})
+        code = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token = (await client.post(VERIFY_URL, json={"email": email, "code": code})).json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        sessions = (await client.get(SESSIONS_URL, headers=headers)).json()
+        token_id = sessions[0]["id"]
+
+        response = await client.delete(REVOKE_SESSION_URL.format(token_id=token_id), headers=headers)
+
+        assert response.status_code == 204
+        assert response.content == b""
+
+    async def test_revoked_session_no_longer_authenticates(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        """After revoking a session it must not appear in the list and its token must be rejected."""
+        email = "revoke_auth@example.com"
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code1 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token1 = (await client.post(VERIFY_URL, json={"email": email, "code": code1})).json()["access_token"]
+
+        await client.post(LOGIN_URL, json={"email": email})
+        code2 = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token2 = (await client.post(VERIFY_URL, json={"email": email, "code": code2})).json()["access_token"]
+
+        headers1 = {"Authorization": f"Bearer {token1}"}
+        headers2 = {"Authorization": f"Bearer {token2}"}
+
+        sessions = (await client.get(SESSIONS_URL, headers=headers2)).json()
+        assert len(sessions) == 2
+
+        # revoke token1 using token1 itself
+        sessions_via_1 = (await client.get(SESSIONS_URL, headers=headers1)).json()
+        own_id = sessions_via_1[0]["id"]  # most recent = first (ordered by created_at desc)
+        await client.delete(REVOKE_SESSION_URL.format(token_id=own_id), headers=headers1)
+
+        # token1 is now invalid
+        assert (await client.get("/api/v1/users/me", headers=headers1)).status_code == 401
+        # token2 still works
+        assert (await client.get("/api/v1/users/me", headers=headers2)).status_code == 200
+
+    async def test_revoke_nonexistent_session_returns_404(
+        self, client: AsyncClient, auth_headers: dict
+    ):
+        response = await client.delete(REVOKE_SESSION_URL.format(token_id=999999), headers=auth_headers)
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Session not found"
+
+    async def test_cannot_revoke_another_users_session(
+        self, client: AsyncClient, mock_email_service: MagicMock, db_session
+    ):
+        """IDOR check: user A cannot revoke user B's session."""
+        from modules.users.models import User
+
+        # create user B with a session
+        user_b = User(email="user_b_idor@example.com", hashed_password="x", is_active=True, is_verified=True)
+        db_session.add(user_b)
+        await db_session.commit()
+        await db_session.refresh(user_b)
+
+        await client.post(LOGIN_URL, json={"email": user_b.email})
+        code_b = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token_b = (await client.post(VERIFY_URL, json={"email": user_b.email, "code": code_b})).json()["access_token"]
+        headers_b = {"Authorization": f"Bearer {token_b}"}
+        sessions_b = (await client.get(SESSIONS_URL, headers=headers_b)).json()
+        session_b_id = sessions_b[0]["id"]
+
+        # user A tries to revoke user B's session
+        email_a = "user_a_idor@example.com"
+        await client.post(LOGIN_URL, json={"email": email_a})
+        code_a = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token_a = (await client.post(VERIFY_URL, json={"email": email_a, "code": code_a})).json()["access_token"]
+        headers_a = {"Authorization": f"Bearer {token_a}"}
+
+        response = await client.delete(REVOKE_SESSION_URL.format(token_id=session_b_id), headers=headers_a)
+
+        assert response.status_code == 404  # not 403 — don't leak existence
+        # user B's session is untouched
+        assert (await client.get("/api/v1/users/me", headers=headers_b)).status_code == 200
+
+    async def test_revoke_already_inactive_session_returns_404(
+        self, client: AsyncClient, mock_email_service: MagicMock
+    ):
+        """Revoking a session that is already inactive (or already revoked) returns 404."""
+        email = "revoke_twice@example.com"
+        await client.post(LOGIN_URL, json={"email": email})
+        code = mock_email_service.send_login_code_email_task.call_args[0][1]
+        token = (await client.post(VERIFY_URL, json={"email": email, "code": code})).json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        sessions = (await client.get(SESSIONS_URL, headers=headers)).json()
+        token_id = sessions[0]["id"]
+
+        first = await client.delete(REVOKE_SESSION_URL.format(token_id=token_id), headers=headers)
+        assert first.status_code == 204
+
+        # second attempt — token is already invalid so we get 401, not 404
+        second = await client.delete(REVOKE_SESSION_URL.format(token_id=token_id))
+        assert second.status_code == 401
 
 
 # ---------------------------------------------------------------------------
