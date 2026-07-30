@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
+from core.i18n import _
 from core.limiter import limiter
 from modules.users.api.dependencies import get_auth_magic_link_service
 from modules.users.exceptions import (
@@ -52,14 +53,14 @@ async def login_with_magic_link(
     """
     try:
         await auth_service.login(request_data.email)
-        return LoginResponse(message="Code sent to your email")
+        return LoginResponse(message=_("Code sent to your email"))
     except AuthErrorException as e:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=str(e))
     except Exception as e:
         logger.exception(f"Exception: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Something went wrong",
+            detail=_("Something went wrong"),
         )
 
 
@@ -73,11 +74,11 @@ async def logout(
     if authorization:
         parts = authorization.split(" ")
         if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1]:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Authorization header format")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=_("Invalid Authorization header format"))
         token = parts[1]
 
     if token is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header is missing")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=_("Authorization header is missing"))
 
     try:
         await auth_service.logout(user.id, token)
@@ -87,7 +88,7 @@ async def logout(
         logger.exception(f"Exception: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Something went wrong",
+            detail=_("Something went wrong"),
         )
 
 
@@ -102,10 +103,10 @@ async def revoke_session(
     try:
         await auth_service.revoke_session(user.id, token_id)
     except AccessTokenNotFound:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=_("Session not found"))
     except Exception as e:
         logger.exception(f"Exception: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=_("Something went wrong"))
 
 
 @router.get("/sessions", response_model=list[SessionSchema])
@@ -129,7 +130,7 @@ async def logout_all(
         logger.exception(f"Exception: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Something went wrong",
+            detail=_("Something went wrong"),
         )
 
 
@@ -153,5 +154,5 @@ async def verify_login(
         logger.exception(f"Exception: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something went wrong",
+            detail=_("Something went wrong"),
         )
