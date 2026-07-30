@@ -102,7 +102,7 @@ All protected endpoints expect `Authorization: Bearer <token>`.
 
 ```bash
 git clone https://github.com/ubihinon/fast-api-template.git
-cd fastapi-template
+cd fast-api-template
 ```
 
 ### 2. Create a virtual environment and install dependencies
