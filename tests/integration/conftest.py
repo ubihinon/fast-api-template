@@ -26,9 +26,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import NullPool
 
 from core.database import get_session
+from core.dependencies import get_user_notification_service
 from core.main import app
 from core.settings import settings
-from core.dependencies import get_user_notification_service
 from modules.notifications.services.users_email import UsersEmailService
 
 # ---------------------------------------------------------------------------
