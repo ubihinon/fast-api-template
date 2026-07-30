@@ -125,6 +125,11 @@ class AuthMagicLinkService:
 
         return AccessTokenSchema.model_validate(access_token)
 
+    async def revoke_session(self, user_id: int, token_id: int) -> None:
+        if not await self.access_token_repository.deactivate_token_by_id(user_id, token_id):
+            raise AccessTokenNotFound(_("Session not found"))
+        await self.session.commit()
+
     async def get_sessions(self, user_id: int) -> list[SessionSchema]:
         tokens = await self.access_token_repository.get_active_sessions(user_id)
         return [SessionSchema.model_validate(token) for token in tokens]

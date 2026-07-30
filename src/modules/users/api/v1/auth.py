@@ -91,6 +91,23 @@ async def logout(
         )
 
 
+@router.delete("/sessions/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
+async def revoke_session(
+    request: Request,
+    token_id: int,
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+) -> None:
+    try:
+        await auth_service.revoke_session(user.id, token_id)
+    except AccessTokenNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    except Exception as e:
+        logger.exception(f"Exception: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong")
+
+
 @router.get("/sessions", response_model=list[SessionSchema])
 @limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
 async def get_sessions(

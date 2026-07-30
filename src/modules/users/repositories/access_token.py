@@ -48,6 +48,23 @@ class AccessTokenRepository(BaseRepository):
         )
         return list(result.scalars().all())
 
+    async def deactivate_token_by_id(self, user_id: UserIdType, token_id: int) -> bool:
+        """Deactivate a specific session by its PK.
+
+        The user_id guard prevents IDOR: a user can only revoke their own sessions.
+        """
+        result = cast(CursorResult, await self.session.execute(
+            update(AccessToken)
+            .where(
+                AccessToken.id == token_id,
+                AccessToken.user_id == user_id,
+                AccessToken.is_active.is_(True),
+            )
+            .values(is_active=False)
+        ))
+        await self.session.flush()
+        return result.rowcount > 0
+
     async def deactivate_all_tokens(self, user_id: UserIdType) -> bool:
         result = cast(CursorResult, await self.session.execute(
             update(AccessToken)
