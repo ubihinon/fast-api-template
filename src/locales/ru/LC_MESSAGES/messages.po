@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-30 18:30+0400\n"
+"POT-Creation-Date: 2026-07-30 23:03+0400\n"
 "PO-Revision-Date: 2026-07-28 17:49+0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -106,3 +106,4 @@ msgstr "Превышено максимальное количество поп�
 
 msgid "Token not found"
 msgstr "Токен не найден"
+
