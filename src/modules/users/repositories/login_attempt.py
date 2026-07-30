@@ -29,6 +29,18 @@ class LoginAttemptRepository(BaseRepository):
         await self.session.flush()
         return login_attempt
 
+    async def get_history(
+        self, user_id: UserIdType, limit: int = 50, offset: int = 0
+    ) -> list[LoginAttempt]:
+        result = await self.session.execute(
+            select(LoginAttempt)
+            .where(LoginAttempt.user_id == user_id)
+            .order_by(LoginAttempt.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        return list(result.scalars().all())
+
     async def get_failed_attempts_count(
         self, user_id: UserIdType, since: datetime.datetime
     ) -> int:

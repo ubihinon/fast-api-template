@@ -95,7 +95,7 @@ Modules follow a layered pattern: **router → service → repository → model*
   - `auth_backend.py` — fastapi-users `AuthenticationBackend` wired to the DB token strategy; `TouchingDatabaseStrategy` subclass lazily updates `last_used_at` on successful auth
   - `dependencies.py` — Module-level FastAPI dependencies
   - `api/dependencies.py` — Endpoint-level dependencies (e.g. `get_auth_magic_link_service`)
-  - `api/v1/auth.py` — Auth endpoints: `POST /auth/magic/login`, `/auth/magic/verify-login`, `/auth/magic/logout`, `/auth/magic/logout-all`, `GET /auth/sessions`, `DELETE /auth/sessions/{token_id}`
+  - `api/v1/auth.py` — Auth endpoints: `POST /auth/magic/login`, `/auth/magic/verify-login`, `/auth/magic/logout`, `/auth/magic/logout-all`, `GET /auth/sessions`, `DELETE /auth/sessions/{token_id}`, `GET /auth/login-history`
   - `api/v1/users.py` — User management endpoints (`/me`, `/{id}` via fastapi-users router)
   - `fastapi_users_config.py` — `fastapi_users` instance and `current_active_user` dependency
   - `settings.py` — Module-level constants (token/code TTLs, max login attempts, rate limit strings)

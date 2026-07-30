@@ -85,6 +85,7 @@ This template uses a **magic link / OTP** flow instead of passwords:
 4. `POST /api/v1/auth/magic/logout-all` — invalidates all active tokens for the user (all devices)
 5. `GET /api/v1/auth/sessions` — lists all active sessions with metadata: `created_at`, `expires_at`, `last_used_at`, `ip_address`
 6. `DELETE /api/v1/auth/sessions/{token_id}` — revokes a specific session by ID; user can only revoke their own sessions (IDOR-safe)
+7. `GET /api/v1/auth/login-history` — paginated login attempt history (`limit`, `offset`); `code_entered` is never exposed
 
 All protected endpoints expect `Authorization: Bearer <token>`.
 
