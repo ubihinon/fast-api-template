@@ -12,3 +12,7 @@ venv/
 __pycache__/
 *.py[cod]
 *.pyo
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
