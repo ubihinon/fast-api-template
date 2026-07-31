@@ -65,80 +65,6 @@ async def login_with_magic_link(
         )
 
 
-@router.post("/magic/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(
-    user:  Annotated[User, Depends(current_active_user)],
-    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
-    authorization: Annotated[str, Header()],
-) -> None:
-    token = authorization.split(" ", 1)[1]
-
-    try:
-        await auth_service.logout(user.id, token)
-    except AccessTokenNotFound as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.exception(f"Exception: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=_("Something went wrong"),
-        )
-
-
-@router.get("/login-history", response_model=LoginHistoryPageSchema)
-@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
-async def get_login_history(
-    request: Request,
-    user: Annotated[User, Depends(current_active_user)],
-    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
-    limit: Annotated[int, Query(ge=1, le=200)] = 50,
-    cursor: Annotated[int | None, Query(ge=1)] = None,
-) -> LoginHistoryPageSchema:
-    return await auth_service.get_login_history(user.id, limit=limit, cursor=cursor)
-
-
-@router.delete("/sessions/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
-@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
-async def revoke_session(
-    request: Request,
-    token_id: int,
-    user: Annotated[User, Depends(current_active_user)],
-    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
-) -> None:
-    try:
-        await auth_service.revoke_session(user.id, token_id)
-    except AccessTokenNotFound:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=_("Session not found"))
-    except Exception as e:
-        logger.exception(f"Exception: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=_("Something went wrong"))
-
-
-@router.get("/sessions", response_model=list[SessionSchema])
-@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
-async def get_sessions(
-    request: Request,
-    user: Annotated[User, Depends(current_active_user)],
-    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
-) -> list[SessionSchema]:
-    return await auth_service.get_sessions(user.id)
-
-
-@router.post("/magic/logout-all", status_code=status.HTTP_204_NO_CONTENT)
-async def logout_all(
-    user: Annotated[User, Depends(current_active_user)],
-    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
-) -> None:
-    try:
-        await auth_service.logout(user.id)
-    except Exception as e:
-        logger.exception(f"Exception: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=_("Something went wrong"),
-        )
-
-
 @router.post("/magic/verify-login", openapi_extra={"security": []})
 @limiter.limit(users_settings.RATE_LIMIT_VERIFY)
 async def verify_login(
@@ -161,3 +87,77 @@ async def verify_login(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=_("Something went wrong"),
         )
+
+
+@router.post("/magic/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    user:  Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+    authorization: Annotated[str, Header()],
+) -> None:
+    token = authorization.split(" ", 1)[1]
+
+    try:
+        await auth_service.logout(user.id, token)
+    except AccessTokenNotFound as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.exception(f"Exception: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=_("Something went wrong"),
+        )
+
+
+@router.post("/magic/logout-all", status_code=status.HTTP_204_NO_CONTENT)
+async def logout_all(
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+) -> None:
+    try:
+        await auth_service.logout(user.id)
+    except Exception as e:
+        logger.exception(f"Exception: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=_("Something went wrong"),
+        )
+
+
+@router.get("/sessions", response_model=list[SessionSchema])
+@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
+async def get_sessions(
+    request: Request,
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+) -> list[SessionSchema]:
+    return await auth_service.get_sessions(user.id)
+
+
+@router.delete("/sessions/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
+async def revoke_session(
+    request: Request,
+    token_id: int,
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+) -> None:
+    try:
+        await auth_service.revoke_session(user.id, token_id)
+    except AccessTokenNotFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=_("Session not found"))
+    except Exception as e:
+        logger.exception(f"Exception: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=_("Something went wrong"))
+
+
+@router.get("/login-history", response_model=LoginHistoryPageSchema)
+@limiter.limit(users_settings.RATE_LIMIT_SESSIONS)
+async def get_login_history(
+    request: Request,
+    user: Annotated[User, Depends(current_active_user)],
+    auth_service: Annotated[AuthMagicLinkService, Depends(get_auth_magic_link_service)],
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    cursor: Annotated[int | None, Query(ge=1)] = None,
+) -> LoginHistoryPageSchema:
+    return await auth_service.get_login_history(user.id, limit=limit, cursor=cursor)
