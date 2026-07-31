@@ -213,8 +213,70 @@ cd src && celery -A core.celery_app beat --loglevel=info
 **Flower** (monitoring UI):
 
 ```bash
-cd src && celery -A core.celery_app flower --port=5555
+cd src && celery -A core.celery_app flower --port=5555 --basic-auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme}
 ```
+
+### Flower Security (Production)
+
+By default, Flower is protected with basic auth via `FLOWER_USER` / `FLOWER_PASSWORD`. For production, consider one of the following hardened options.
+
+#### Option 1: No exposed port + nginx basic auth
+
+Remove the `ports` mapping from the `flower` service in `docker-compose.yml` so it is only reachable inside the Docker network:
+
+```yaml
+flower:
+  expose:
+    - "5555"
+  # remove the ports: block entirely
+```
+
+Then proxy it through nginx with basic auth:
+
+```nginx
+location /flower/ {
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
+    proxy_pass http://flower:5555/flower/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_redirect off;
+}
+```
+
+Generate the `.htpasswd` file:
+
+```bash
+htpasswd -c /etc/nginx/.htpasswd admin
+```
+
+Also start Flower with a URL prefix so its assets resolve correctly behind the proxy:
+
+```yaml
+command: bash -c "cd /app && celery -A core.celery_app flower --port=5555 --url-prefix=flower"
+```
+
+#### Option 2: URL prefix only (behind a trusted reverse proxy)
+
+If your reverse proxy already handles authentication (e.g. OAuth2 proxy, IP allowlist), you can run Flower with just a URL prefix and rely on the proxy layer for access control:
+
+```yaml
+command: bash -c "cd /app && celery -A core.celery_app flower --port=5555 --url-prefix=flower"
+```
+
+nginx config (access control handled upstream):
+
+```nginx
+location /flower/ {
+    proxy_pass http://flower:5555/flower/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_redirect off;
+}
+```
+
+> **Note:** With Option 3, ensure the `/flower/` path is not publicly reachable without authentication at the proxy/firewall level.
 
 ## CLI
 
@@ -368,6 +430,8 @@ Then add the language code to `SUPPORTED_LANGUAGES` in `src/core/i18n.py`.
 | `CELERY_BROKER_URL` | `redis://localhost:6379/0` | No | Celery broker URL |
 | `CELERY_RESULT_BACKEND_URL` | `redis://localhost:6379/1` | No | Celery result backend URL |
 | `CELERY_ALWAYS_EAGER` | `False` | No | Run tasks synchronously (set `True` in tests) |
+| `FLOWER_USER` | `admin` | No | Flower monitoring UI basic auth username |
+| `FLOWER_PASSWORD` | `changeme` | No | Flower monitoring UI basic auth password |
 
 ### Auth / Tokens
 
