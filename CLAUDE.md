@@ -40,6 +40,11 @@ alembic revision --autogenerate -m "description"
 cd src && celery -A core.celery_app worker --loglevel=info
 ```
 
+**Run Flower (monitoring UI):**
+```bash
+cd src && celery -A core.celery_app flower --port=5555 --basic-auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme}
+```
+
 **Run Celery Beat (periodic tasks):**
 ```bash
 cd src && celery -A core.celery_app beat --loglevel=info
@@ -120,6 +125,18 @@ Modules follow a layered pattern: **router → service → repository → model*
 ### CLI (`src/cli/`)
 Typer-based CLI with an `admin` sub-command group for admin user management.
 
+### Flower security
+
+- **Development (default):** basic auth via `--basic-auth=${FLOWER_USER}:${FLOWER_PASSWORD}` (set in `.env`)
+- **Production Option 1 — no exposed port + nginx basic auth:**
+  - Remove `ports:` from the `flower` service in `docker-compose.yml`; keep only `expose: ["5555"]`
+  - Start Flower with `--url-prefix=flower`
+  - Proxy via nginx with `auth_basic` and an `.htpasswd` file (see README for full config)
+- **Production Option 2 — URL prefix + proxy-level auth:**
+  - Start Flower with `--url-prefix=flower`
+  - Rely on the reverse proxy / OAuth2 proxy / IP allowlist for access control
+  - Ensure `/flower/` is never publicly reachable without authentication
+
 ## Rules
 
 - Do not delete the `.env` file.
@@ -135,6 +152,8 @@ Typer-based CLI with an `admin` sub-command group for admin user management.
 | `CELERY_BROKER_URL` | `redis://localhost:6379/0` | Celery broker |
 | `CELERY_RESULT_BACKEND_URL` | `redis://localhost:6379/1` | Celery results |
 | `CELERY_ALWAYS_EAGER` | `False` | Set `True` in tests to run tasks synchronously |
+| `FLOWER_USER` | `admin` | Flower basic auth username |
+| `FLOWER_PASSWORD` | `changeme` | Flower basic auth password |
 | `ENABLE_ADMIN` | `True` | Mount starlette-admin at `/admin` |
 | `TRUST_PROXY_HEADERS` | `False` | Trust `X-Forwarded-For` (only behind a trusted reverse proxy) |
 | `GRAFANA_LOKI_URL` | `` | Log shipping to Grafana Loki (disabled when empty) |
