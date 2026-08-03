@@ -11,7 +11,8 @@
       "Bash(.venv/bin/ruff check --fix tests/)",
       "Bash(.venv/bin/pybabel extract*)",
       "Bash(.venv/bin/pybabel update*)",
-      "Bash(.venv/bin/pybabel compile*)"
+      "Bash(.venv/bin/pybabel compile*)",
+      "Bash(PYTHONPATH=src .venv/bin/lint-imports*)"
     ],
     "deny": [
       "Read(./.env)",
