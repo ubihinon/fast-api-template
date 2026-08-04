@@ -14,26 +14,9 @@ logger = logging.getLogger("email_service")
 
 class BaseEmailService:
     def __init__(self, settings: EmailSettings, background_tasks: BackgroundTasks):
-        self.settings = settings
+        self.config = self.build_connection_config(settings)
         self.background_tasks = background_tasks
-        self.config = self._get_connection_config()
         self.fastmail = FastMail(self.config)
-
-    def _get_connection_config(self) -> ConnectionConfig:
-        return ConnectionConfig(
-            MAIL_USERNAME=self.settings.MAIL_USERNAME,
-            MAIL_PASSWORD=self.settings.MAIL_PASSWORD,
-            MAIL_FROM=self.settings.MAIL_FROM,
-            MAIL_PORT=self.settings.MAIL_PORT,
-            MAIL_SERVER=self.settings.MAIL_SERVER,
-            MAIL_FROM_NAME=self.settings.MAIL_FROM_NAME,
-            MAIL_STARTTLS=self.settings.MAIL_STARTTLS,
-            MAIL_SSL_TLS=self.settings.MAIL_SSL_TLS,
-            USE_CREDENTIALS=self.settings.USE_CREDENTIALS,
-            VALIDATE_CERTS=self.settings.VALIDATE_CERTS,
-            TEMPLATE_FOLDER=self.settings.TEMPLATE_FOLDER,
-            SUPPRESS_SEND=self.settings.SUPPRESS_SEND
-        )
 
     def _prepare_message(
         self,
@@ -127,3 +110,21 @@ class BaseEmailService:
         )
         logger.info(f"Send email task '{payload.subject}' added to background tasks FastAPI.")
         return self.background_tasks.tasks
+
+
+    @staticmethod
+    def build_connection_config(settings: EmailSettings) -> ConnectionConfig:
+        return ConnectionConfig(
+            MAIL_USERNAME=settings.MAIL_USERNAME,
+            MAIL_PASSWORD=settings.MAIL_PASSWORD,
+            MAIL_FROM=settings.MAIL_FROM,
+            MAIL_PORT=settings.MAIL_PORT,
+            MAIL_SERVER=settings.MAIL_SERVER,
+            MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
+            MAIL_STARTTLS=settings.MAIL_STARTTLS,
+            MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
+            USE_CREDENTIALS=settings.USE_CREDENTIALS,
+            VALIDATE_CERTS=settings.VALIDATE_CERTS,
+            TEMPLATE_FOLDER=settings.TEMPLATE_FOLDER,
+            SUPPRESS_SEND=settings.SUPPRESS_SEND,
+        )
