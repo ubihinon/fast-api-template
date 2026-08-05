@@ -69,6 +69,10 @@ app.add_middleware(
 
 app.include_router(users_router)
 
+if settings.PROFILING_ENABLED:
+    from core.profiling import ProfilingMiddleware
+
+    app.add_middleware(ProfilingMiddleware)
 
 if settings.ENABLE_ADMIN:
     admin.setup_admin(app)

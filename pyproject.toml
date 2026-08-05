@@ -82,6 +82,7 @@ disable_error_code = ["type-var"]
 [dependency-groups]
 dev = [
     "celery-types>=0.26.0",
+    "pyinstrument>=5.1.3",
     "import-linter>=2.13",
     "mypy>=2.3.0",
     "pytest>=9.1.1",
