@@ -4,7 +4,7 @@ Strategy:
 - httpx.AsyncClient + ASGITransport — no real HTTP server needed
 - get_session is overridden to use a dedicated test engine (localhost PostgreSQL)
 - get_users_email_service is overridden with a MagicMock — no real SMTP
-- Rate limiter is replaced with an in-memory instance per test to prevent interference
+- Rate limiter is disabled per test (limiter.enabled = False) to prevent interference
 - All user tables are TRUNCATED after every test for full isolation
 
 Environment:
@@ -19,8 +19,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -113,13 +111,8 @@ async def client(
     async def override_get_email_service():
         return mock_email_service
 
-    # Disable rate limiting in two places:
-    # 1. app.state.limiter — used by SlowAPIMiddleware
-    # 2. core.limiter.limiter — referenced directly by @limiter.limit() decorator wrappers
     import core.limiter as _core_limiter
-    original_limiter = app.state.limiter
     original_enabled = _core_limiter.limiter.enabled
-    app.state.limiter = Limiter(key_func=get_remote_address, enabled=False)
     _core_limiter.limiter.enabled = False
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_user_notification_service] = override_get_email_service
@@ -131,7 +124,6 @@ async def client(
         yield ac
 
     app.dependency_overrides.clear()
-    app.state.limiter = original_limiter
     _core_limiter.limiter.enabled = original_enabled
 
 

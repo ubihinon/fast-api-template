@@ -11,7 +11,6 @@ from fastapi.openapi.utils import get_openapi
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 
 from core import admin
 from core.i18n import load_translations, _translations
@@ -59,9 +58,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION, lifespan=lifespan)
 
-app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
-app.add_middleware(SlowAPIMiddleware)  # type: ignore[arg-type]
 app.add_middleware(LanguageMiddleware)
 app.add_middleware(
     CORSMiddleware,  # type: ignore[arg-type]
