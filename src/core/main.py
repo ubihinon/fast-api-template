@@ -14,7 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from core import admin
-from core.i18n import load_translations
+from core.i18n import load_translations, _translations
 from core.limiter import limiter
 from core.logger_setup import setup_logging
 from core.middleware import LanguageMiddleware
