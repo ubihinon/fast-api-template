@@ -13,8 +13,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from core import admin
-from core.i18n import load_translations, _translations
-from core.limiter import limiter
+from core.i18n import _translations, load_translations
 from core.logger_setup import setup_logging
 from core.middleware import LanguageMiddleware
 from core.settings import settings
