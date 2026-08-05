@@ -13,10 +13,9 @@ logger = logging.getLogger("email_service")
 
 
 class BaseEmailService:
-    def __init__(self, settings: EmailSettings, background_tasks: BackgroundTasks):
-        self.config = self.build_connection_config(settings)
+    def __init__(self, fastmail: FastMail, background_tasks: BackgroundTasks):
+        self.fastmail = fastmail
         self.background_tasks = background_tasks
-        self.fastmail = FastMail(self.config)
 
     def _prepare_message(
         self,
