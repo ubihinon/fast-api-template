@@ -19,6 +19,7 @@ from core.limiter import limiter
 from core.logger_setup import setup_logging
 from core.middleware import LanguageMiddleware
 from core.settings import settings
+from modules.notifications.template_renderer import _get_env
 from modules.users.api.v1 import router as users_router
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,8 @@ listener = setup_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     load_translations()
+    for lang in _translations:
+        _get_env(lang)
     logger.info("🚀 Starting FastAPI application...")
 
     if settings.GRAFANA_API_USERNAME == "" or settings.GRAFANA_API_PASSWORD == "":
