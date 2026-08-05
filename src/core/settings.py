@@ -47,5 +47,7 @@ class Settings(BaseSettings):
     # When False, X-Forwarded-For is ignored to prevent IP spoofing
     TRUST_PROXY_HEADERS: bool = False
 
+    PROFILING_ENABLED: bool = False
+
 
 settings = Settings()

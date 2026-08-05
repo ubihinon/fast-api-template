@@ -28,3 +28,6 @@ class EmailSettings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
+
+
+email_settings = EmailSettings()

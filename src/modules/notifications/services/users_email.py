@@ -1,17 +1,17 @@
 import datetime
 
 from fastapi import BackgroundTasks
+from fastapi_mail import FastMail
 
 from core.i18n import _
 from modules.notifications.template_renderer import render_email_template
 
-from ..settings import EmailSettings
 from .base_email import BaseEmailService
 
 
 class UsersEmailService(BaseEmailService):
-    def __init__(self, settings: EmailSettings, background_tasks: BackgroundTasks):
-        super().__init__(settings, background_tasks)
+    def __init__(self, fastmail: FastMail, background_tasks: BackgroundTasks):
+        super().__init__(fastmail, background_tasks)
 
     async def send_login_code_email(self, email: str, login_code: str, expires_in: datetime.timedelta) -> bool:
         html = render_email_template("users/login_code.html", {

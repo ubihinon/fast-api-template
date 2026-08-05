@@ -19,8 +19,12 @@ def _get_env(lang: str) -> Environment:
             loader=FileSystemLoader(str(TEMPLATES_DIR)),
             extensions=["jinja2.ext.i18n"],
             autoescape=True,
+            auto_reload=False,
         )
         env.install_gettext_translations(translation, newstyle=True)  # type: ignore[attr-defined]
+        # Pre-compile all templates so the first real request hits the cache
+        for template_path in TEMPLATES_DIR.rglob("*.html"):
+            env.get_template(template_path.relative_to(TEMPLATES_DIR).as_posix())
         _envs[lang] = env
     return _envs[lang]
 
