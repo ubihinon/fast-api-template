@@ -19,6 +19,7 @@ def _get_env(lang: str) -> Environment:
             loader=FileSystemLoader(str(TEMPLATES_DIR)),
             extensions=["jinja2.ext.i18n"],
             autoescape=True,
+            auto_reload=False,
         )
         env.install_gettext_translations(translation, newstyle=True)  # type: ignore[attr-defined]
         _envs[lang] = env
